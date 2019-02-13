@@ -17,37 +17,37 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function merge( t_path, t_from, t_to )
+    function merge( m_path, m_from, m_to )
 
         % create file list %
-        t_pose = dir( [ t_path '/output/5_pose_3/*' ] );
+        m_pose = dir( [ m_path '/output/5_pose_3/*' ] );
 
         % create file list %
-        t_sparse = dir( [ t_path '/output/6_sparse_3/*' ] );
+        m_sparse = dir( [ m_path '/output/6_sparse_3/*' ] );
 
         % initialise cumulative rotation matrix %
-        t_rot = eye(3);
+        m_rot = eye(3);
 
         % initialise cumulative position %
-        t_pos = zeros(1,3);
+        m_pos = zeros(1,3);
 
         % initialise cumulative scale %
-        t_scl = 1;
+        m_scl = 1;
 
         % results - position array %
-        t_vop = [];
+        m_vop = [];
 
         % results - model array %
-        t_vom = [];
+        m_vom = [];
 
         % parsing files %
-        for t_file = max( 1, t_from ) : min( size( t_pose, 1 ), t_to )
+        for m_file = max( 1, m_from ) : min( size( m_pose, 1 ), m_to )
 
             % compute differential index - avoid ply file %
-            t_index = ( ( t_file - 1 ) * 2 ) + 1;
+            m_index = ( ( m_file - 1 ) * 2 ) + 1;
 
             % check consistency %
-            if ( t_sparse(t_index).bytes == 0 )
+            if ( m_sparse(m_index).bytes == 0 )
 
                 % abort merging %
                 break
@@ -55,122 +55,122 @@
             end
 
             % display information %
-            fprintf( 2, 'merging %s ...\n', t_pose(t_file).name );
+            fprintf( 2, 'merging %s ...\n', m_pose(m_file).name );
 
             % read estimated pose %
-            t_data = dlmread( [ t_path '/output/5_pose_3/' t_pose(t_file).name ] );
+            m_data = dlmread( [ m_path '/output/5_pose_3/' m_pose(m_file).name ] );
 
             % extarct rotation 1-2 %
-            t_r12 = t_data(1:3,1:3);
+            m_r12 = m_data(1:3,1:3);
 
             % extract translation 1-2 %
-            t_t12 = t_data(1:3,4)';
+            m_t12 = m_data(1:3,4)';
 
             % extarct rotation 1-2 %
-            t_r23 = t_data(1:3,5:7);
+            m_r23 = m_data(1:3,5:7);
 
             % extract translation 1-2 %
-            t_t23 = t_data(1:3,8)';
+            m_t23 = m_data(1:3,8)';
 
             % extract sparse model - avoid ply files %
-            t_model = dlmread( [ t_path '/output/6_sparse_3/' t_sparse(t_index).name ] );
+            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_sparse(m_index).name ] );
 
             % compute scale factor %
-            t_factor = t_scl / norm( t_t12 );
+            m_factor = m_scl / norm( m_t12 );
 
             % scale translation %
-            t_t12 = t_t12 * t_factor;
+            m_t12 = m_t12 * m_factor;
 
             % scale translation %
-            t_t23 = t_t23 * t_factor;
+            m_t23 = m_t23 * m_factor;
 
             % scale sparse model %
-            t_model = t_model * t_factor;
+            m_model = m_model * m_factor;
 
             % compute position of sphere in triplet first sphere frame %
-            [ t_p1, t_p2, t_p3 ] = merge_position( t_r12, t_t12, t_r23, t_t23 );
+            [ m_p1, m_p2, m_p3 ] = merge_position( m_r12, m_t12, m_r23, m_t23 );
 
             % transfrom position %
-            t_p1 = merge_rotation( t_p1, t_rot ) + t_pos;
-            t_p2 = merge_rotation( t_p2, t_rot ) + t_pos;
-            t_p3 = merge_rotation( t_p3, t_rot ) + t_pos;
+            m_p1 = merge_rotation( m_p1, m_rot ) + m_pos;
+            m_p2 = merge_rotation( m_p2, m_rot ) + m_pos;
+            m_p3 = merge_rotation( m_p3, m_rot ) + m_pos;
 
             % transform model %
-            t_model = merge_rotation( t_model, t_rot ) + t_pos;
+            m_model = merge_rotation( m_model, m_rot ) + m_pos;
 
             % store positions %
-            t_vop = [ t_vop; t_p1; t_p2; t_p3 ];
+            m_vop = [ m_vop; m_p1; m_p2; m_p3 ];
 
             % store model %
-            t_vom = [ t_vom; t_model ];
+            m_vom = [ m_vom; m_model ];
 
             % update cumulative matrix %
-            t_rot = t_rot * ( t_r12' ); % to check %
+            m_rot = m_rot * ( m_r12' ); % to check %
 
             % update cumulative position %
-            t_pos = t_p2;
+            m_pos = m_p2;
 
             % update cumulative scale %
-            t_scl = norm( t_t23 );
+            m_scl = norm( m_t23 );
 
         end
 
         % create output stream %
-        t_f = fopen( [ t_path '/output/7_odometry/nh_odometry.xyz' ], 'w' );
+        m_f = fopen( [ m_path '/output/7_odometry/nh_odometry.xyz' ], 'w' );
 
         % parsing model %
-        for t_i = 1 : size( t_vom, 1 )
+        for m_i = 1 : size( m_vom, 1 )
 
             % export scene point %
-            fprintf( t_f, '%g %g %g 224 224 224\n', t_vom(t_i,:) );
+            fprintf( m_f, '%g %g %g 224 224 224\n', m_vom(m_i,:) );
 
         end
 
         % parsing position %
-        for t_i = 1 : size( t_vop, 1 )
+        for m_i = 1 : size( m_vop, 1 )
 
             % export position %
-            fprintf( t_f, '%g %g %g 255 0 0\n', t_vop(t_i,:) );
+            fprintf( m_f, '%g %g %g 255 0 0\n', m_vop(m_i,:) );
 
         end
 
         % delete output stream %
-        fclose( t_f );
+        fclose( m_f );
 
         %figure;
         %hold on;
-        %plot( t_vop(:,1), t_vop(:,2), '-ko', 'linewidth', 3 );
-        %plot( t_vop(1:3,1), t_vop(1:3,2), '-xr' );
-        %plot( t_vop(3:6,1), t_vop(3:6,2), '-ob' );
+        %plot( m_vop(:,1), m_vop(:,2), '-ko', 'linewidth', 3 );
+        %plot( m_vop(1:3,1), m_vop(1:3,2), '-xr' );
+        %plot( m_vop(3:6,1), m_vop(3:6,2), '-ob' );
 
         %figure;
         %hold on;
-        %plot3( t_vop(:,1), t_vop(:,2), t_vop(:,3), 'x-r' );
-        %plot3( t_vom(:,1), t_vom(:,2), t_vom(:,3), '.k' );
+        %plot3( m_vop(:,1), m_vop(:,2), m_vop(:,3), 'x-r' );
+        %plot3( m_vom(:,1), m_vom(:,2), m_vom(:,3), '.k' );
         %axis( 'equal' );
 
     end
 
-    function [ t_p1, t_p2, t_p3 ] = merge_position( t_r12, t_t12, t_r23, t_t23 )
+    function [ m_p1, m_p2, m_p3 ] = merge_position( m_r12, m_t12, m_r23, m_t23 )
 
         % compute triplet position of sphere one in frame of sphere one %
-        t_p1 = zeros(1,3);
+        m_p1 = zeros(1,3);
 
         % compute triplet position of sphere two in frame of sphere one %
-        t_p2 = ( - t_r12' * t_t12' )';
+        m_p2 = ( - m_r12' * m_t12' )';
 
         % compute triplet position of sphere three in frame of sphere one %
-        t_p3 = ( t_p2' - t_r12' * t_r23' * t_t23' )';
+        m_p3 = ( m_p2' - m_r12' * m_r23' * m_t23' )';
 
     end
 
-    function t_points = merge_rotation( t_points, t_rotation )
+    function m_points = merge_rotation( m_points, m_rotation )
 
         % parsing point list %
-        for t_i = 1 : size( t_points, 1 )
+        for m_i = 1 : size( m_points, 1 )
 
             % apply rotation %
-            t_points(t_i,:) = ( t_rotation * t_points(t_i,:)' )';
+            m_points(m_i,:) = ( m_rotation * m_points(m_i,:)' )';
 
         end
 

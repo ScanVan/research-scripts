@@ -63,7 +63,7 @@
             t_c_err = triplet_error( t_1_e, t_2_e, t_3_e, t_t12, t_t23 );
 
             % check error variation %
-            if ( abs( t_c_err - t_p_err ) < 1e-6 )
+            if ( abs( t_c_err - t_p_err ) < 1e-8 )
 
                 % abort iteration %
                 t_flag = false;
