@@ -2,7 +2,7 @@
     %  research-scripts
     %
     %     Nils Hamel - nils.hamel@bluewin.ch
-    %     Copyright (c) 2016-2018 EPFL, HES-SO Valais
+    %     Copyright (c) 2016-2019 EPFL, HES-SO Valais
     %
     %  This program is free software: you can redistribute it and/or modify
     %  it under the terms of the GNU General Public License as published by

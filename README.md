@@ -11,6 +11,6 @@ The _research-scripts_ comes with the following package dependencies (Ubuntu 16.
 ## Copyright and License
 
 **research-scripts** - Nils Hamel <br >
-Copyright (c) 2016-2018 EPFL, HES-SO Valais
+Copyright (c) 2016-2019 EPFL, HES-SO Valais
 
 This program is licensed under the terms of the GNU GPLv3.
