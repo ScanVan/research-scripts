@@ -113,7 +113,7 @@
     function t_point = triplet_cartesian( t_match, t_width, t_height )
 
         % coordinates re-normalisation %
-        t_match(:,1) = ( t_match(:,1) / t_width ) * 2.0 * pi;
+        t_match(:,1) = ( ( t_match(:,1) - 1 ) / t_width ) * 2.0 * pi;
 
         % coordinates re-normalisation %
         t_match(:,2) = ( 0.5 - ( t_match(:,2) / t_height ) ) * pi;
