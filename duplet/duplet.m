@@ -45,6 +45,7 @@
 
             % compute features %
             d_1_f = duplet_feature( d_1_d, d_1_r );
+
             d_2_f = duplet_feature( d_2_d, d_2_r );
 
             % compute pose estimation %
@@ -71,10 +72,10 @@
                 d_p_err = d_c_err;
 
                 % matches filtering %
-                [ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_consistency( d_1_d, d_1_r, d_2_d, d_2_r, 3.5, d_1_e, d_2_e );
+                %[ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_consistency( d_1_d, d_1_r, d_2_d, d_2_r, 5.0, d_1_e, d_2_e );
 
                 % stability filtering %
-                [ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_filter( d_1_d, d_1_r, d_2_d, d_2_r, 5.0 );
+                [ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_filter( d_1_d, d_1_r, d_2_d, d_2_r, 3.0 ); % 2.5
 
                 % compute triplet characteristic scale %
                 d_norm = norm( d_t12 );
@@ -107,7 +108,7 @@
     function d_point = duplet_cartesian( d_match, d_width, d_height )
 
         % coordinates re-normalisation %
-        d_match(:,1) = ( d_match(:,1) / d_width ) * 2.0 * pi;
+        d_match(:,1) = ( ( d_match(:,1) - 1 ) / d_width ) * 2.0 * pi;
 
         % coordinates re-normalisation %
         d_match(:,2) = ( 0.5 - ( d_match(:,2) / d_height ) ) * pi;
@@ -130,9 +131,9 @@
     function d_f = duplet_feature( d_d, d_r )
 
         % compute feature position %
-        d_f(:,1) = d_d(:,1) .* d_r(:);
-        d_f(:,2) = d_d(:,2) .* d_r(:);
-        d_f(:,3) = d_d(:,3) .* d_r(:);
+        d_f(:,1) = d_r(:) .* d_d(:,1);
+        d_f(:,2) = d_r(:) .* d_d(:,2);
+        d_f(:,3) = d_r(:) .* d_d(:,3);
 
     end
 
@@ -273,7 +274,7 @@
     function d_error = duplet_error( d_1_e, d_2_e, d_t12 )
 
         % compute error %
-        d_error = max( [ max( d_1_e ), max( d_2_e ) ] ) / norm( d_t12 );
+        d_error = max( d_1_e .+ d_2_e ) / norm( d_t12 );
 
     end
 
@@ -311,9 +312,11 @@
 
         % statistics %
         d_1_m = mean( d_1_r );
+        d_2_m = mean( d_2_r );
 
         % statistics %
-        d_1_s = std( d_1_r );
+        d_1_s = std( d_1_r ) * d_tol;
+        d_2_s = std( d_2_r ) * d_tol;
 
         % indexation parameter %
         d_index = 0;
@@ -321,7 +324,8 @@
         % filtering process %
         for d_i = 1 : size( d_1_d, 1 )
 
-            if ( abs( d_1_r(d_i) - d_1_m ) <= d_1_s * d_tol )
+            if ( abs( d_1_r(d_i) - d_1_m ) <= d_1_s )
+            if ( abs( d_2_r(d_i) - d_2_m ) <= d_2_s )
 
                 % update index %
                 d_index = d_index + 1;
@@ -334,6 +338,7 @@
                 d_1_d_( d_index, : ) = d_1_d( d_i, : );
                 d_2_d_( d_index, : ) = d_2_d( d_i, : );
 
+            end
             end
 
         end
