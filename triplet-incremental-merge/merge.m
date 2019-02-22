@@ -142,6 +142,7 @@
         %plot( m_vop(:,1), m_vop(:,2), '-ko', 'linewidth', 3 );
         %plot( m_vop(1:3,1), m_vop(1:3,2), '-xr' );
         %plot( m_vop(3:6,1), m_vop(3:6,2), '-ob' );
+        %axis( 'equal' );
 
         %figure;
         %hold on;

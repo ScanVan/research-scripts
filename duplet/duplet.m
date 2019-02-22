@@ -111,7 +111,7 @@
         d_match(:,1) = ( ( d_match(:,1) - 1 ) / d_width ) * 2.0 * pi;
 
         % coordinates re-normalisation %
-        d_match(:,2) = ( 0.5 - ( d_match(:,2) / d_height ) ) * pi;
+        d_match(:,2) = ( ( d_match(:,2) / d_height ) - 0.5 ) * pi;
 
         % initialise memory %
         d_point = zeros( size( d_match, 1 ), 3 );

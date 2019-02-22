@@ -116,7 +116,7 @@
         t_match(:,1) = ( ( t_match(:,1) - 1 ) / t_width ) * 2.0 * pi;
 
         % coordinates re-normalisation %
-        t_match(:,2) = ( 0.5 - ( t_match(:,2) / t_height ) ) * pi;
+        t_match(:,2) = ( ( t_match(:,2) / t_height ) - 0.5 ) * pi;
 
         % initialise memory %
         t_point = zeros( size( t_match, 1 ), 3 );
