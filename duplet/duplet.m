@@ -72,10 +72,10 @@
                 d_p_err = d_c_err;
 
                 % matches filtering %
-                %[ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_consistency( d_1_d, d_1_r, d_2_d, d_2_r, 5.0, d_1_e, d_2_e );
+                [ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_consistency( d_1_d, d_1_r, d_2_d, d_2_r, 5.0, d_1_e, d_2_e );
 
                 % stability filtering %
-                [ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_filter( d_1_d, d_1_r, d_2_d, d_2_r, 3.0 ); % 2.5
+                [ d_1_d, d_1_r, d_2_d, d_2_r ] = duplet_filter( d_1_d, d_1_r, d_2_d, d_2_r, 3.0 );
 
                 % compute triplet characteristic scale %
                 d_norm = norm( d_t12 );
