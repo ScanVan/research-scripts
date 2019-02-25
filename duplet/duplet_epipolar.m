@@ -17,7 +17,7 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function duplet( d_match, d_width, d_height )
+    function duplet_epipolar( d_match, d_width, d_height )
 
         % import triplet matches %
         d_data = dlmread( d_match );
@@ -262,9 +262,9 @@
             % compute optimised intersection %
             [ d_1_r(d_i), d_2_r(d_i), d_inter ] = duplet_intersect( d_1_p', d_1_d(d_i,:), d_2_p', d_2_d(d_i,:) );
 
-            % compute intersection disparity %
-            d_1_e(d_i) = norm( d_1_p' + d_1_d(d_i,:) * d_1_r(d_i) - d_inter );
-            d_2_e(d_i) = norm( d_2_p' + d_2_d(d_i,:) * d_2_r(d_i) - d_inter );
+            % compute epipolar disparity
+            d_1_e(d_i) = duplet_error_epipolar( d_2_p', d_2_d(d_i,:), d_1_p', d_1_d(d_i,:) );
+            d_2_e(d_i) = duplet_error_epipolar( d_1_p', d_1_d(d_i,:), d_2_p', d_2_d(d_i,:) );
 
         end
 
@@ -279,16 +279,14 @@
 
     function [ d_1_d_, d_1_r_, d_2_d_, d_2_r_ ] = duplet_consistency( d_1_d, d_1_r, d_2_d, d_2_r, d_tol, d_1_e, d_2_e )
 
-        % compute statistics %
-        d_1_s = std( d_1_e ) * d_tol;
-
         % indexation %
         d_index = 0;
 
         % parsing features %
         for d_i = 1 : size( d_1_d, 1 )
 
-            if ( d_1_e(d_i) < d_1_s )
+            if ( abs( d_1_e(d_i) ) < d_tol )
+            if ( abs( d_2_e(d_i) ) < d_tol )
 
                 % update index %
                 d_index = d_index + 1;
@@ -301,6 +299,7 @@
                 d_1_d_( d_index, : ) = d_1_d( d_i, : );
                 d_2_d_( d_index, : ) = d_2_d( d_i, : );
 
+            end
             end
 
         end
@@ -341,6 +340,27 @@
             end
 
         end
+
+    end
+
+    function d_error = duplet_error_epipolar( d_1_p, d_1_d, d_2_p, d_2_d )
+
+        % compute plan vector %
+        d_1_v = d_1_d;
+        d_2_v = d_2_p - d_1_p;
+
+        % compute normal vector %
+        d_n = cross( d_1_v / norm( d_1_v ), d_2_v / norm( d_2_v ) );
+
+        % compute plane constant %
+        d_c = - d_n(1) * d_1_p(1) - d_n(2) * d_1_p(2) - d_n(3) * d_1_p(3);
+
+        % compute feature point position in sphere two %
+        d_p = d_2_p + d_2_d;
+
+        % compute epipolar plane distance %
+        d_error = abs( d_n(1) * d_p(1) + d_n(2) * d_p(2) + d_n(3) * d_p(3) + d_c ) / norm( d_n );
+
 
     end
 
