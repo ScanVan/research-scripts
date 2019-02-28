@@ -17,15 +17,20 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function triplet( t_match, t_width, t_height )
+    function [ t_r12, t_r23, t_t12, t_t23, t_sparse ] = triplet( t_input, t_width, t_height, t_path )
 
         % import triplet matches %
-        t_data = dlmread( t_match );
+        %t_data = dlmread( t_path );
 
         % compute initial direction %
-        t_1_d = triplet_cartesian( t_data( :, 1:2 ), t_width, t_height );
-        t_2_d = triplet_cartesian( t_data( :, 3:4 ), t_width, t_height );
-        t_3_d = triplet_cartesian( t_data( :, 5:6 ), t_width, t_height );
+        %t_1_d = triplet_cartesian( t_data( :, 1:2 ), t_width, t_height );
+        %t_2_d = triplet_cartesian( t_data( :, 3:4 ), t_width, t_height );
+        %t_3_d = triplet_cartesian( t_data( :, 5:6 ), t_width, t_height );
+
+        % extract features directions %
+        t_1_d = t_input(:,1:3);
+        t_2_d = t_input(:,4:6);
+        t_3_d = t_input(:,7:9);
 
         % compute initial radius %
         t_1_r = ones( size( t_1_d, 1 ), 1 );
@@ -98,15 +103,18 @@
         end
 
         % display results %
-        display( t_r12 );
-        display( t_r23 );
+        %display( t_r12 );
+        %display( t_r23 );
 
         % display results %
-        display( t_t12 );
-        display( t_t23 );
+        %display( t_t12 );
+        %display( t_t23 );
 
         % export results %
-        triplet_export( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_r12, t_t12, t_r23, t_t23, t_match );
+        %triplet_export( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_r12, t_t12, t_r23, t_t23, t_match );
+
+        % compute sparse model %
+        t_sparse = triplet_model( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_r12, t_t12, t_r23, t_t23 );
 
     end
 
@@ -398,7 +406,7 @@
 
     end
 
-    function triplet_export( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_r12, t_t12, t_r23, t_t23, t_output )
+    function t_sparse = triplet_model( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_r12, t_t12, t_r23, t_t23 )
 
         % compute common frame %
         [ t_1_p_, t_1_d_, t_2_p_, t_2_d_, t_3_p_, t_3_d_ ] = triplet_frame_on_sphere_1( t_1_d, t_2_d, t_3_d, t_r12, t_r23, t_t12, t_t23 );
@@ -408,41 +416,64 @@
         t_2_f = t_2_p_' + triplet_feature( t_2_d_, t_2_r );
         t_3_f = t_3_p_' + triplet_feature( t_3_d_, t_3_r );
 
-        % create output stream %
-        t_f = fopen( [ t_output '.disparity.xyz' ], 'w' );
+        % initialise memory %
+        t_sparse = zeros( size( t_1_d, 1 ), 3 );
 
-        % parsing points %
-        for t_i = 1 : size( t_1_d, 1 )
-
-            % export feature position %
-            fprintf( t_f, '%g %g %g 255 0 0\n', t_1_f(t_i,:) );
-
-            % export feature position %
-            fprintf( t_f, '%g %g %g 0 255 0\n', t_2_f(t_i,:) );
-
-            % export feature position %
-            fprintf( t_f, '%g %g %g 0 0 255\n', t_3_f(t_i,:) );
-
-        end
-
-        % delete output stream %
-        fclose( t_f );
-
-        % create output stream %
-        t_f = fopen( [ t_output '.sparse.xyz' ], 'w' );
-
-        % parsing points %
+        % parsing features %
         for t_i = 1 : size( t_1_d, 1 )
 
             % compute best intesection %
-            t_p = triplet_intersect( t_1_p_, t_1_d_(t_i,:), t_2_p_, t_2_d_(t_i,:), t_3_p_, t_3_d_(t_i,:) );
-
-            % export point %
-            fprintf( t_f, '%g %g %g 192 192 192\n', t_p(1), t_p(2), t_p(3) );
+            t_sparse(t_i,:) = triplet_intersect( t_1_p_, t_1_d_(t_i,:), t_2_p_, t_2_d_(t_i,:), t_3_p_, t_3_d_(t_i,:) );
 
         end
 
-        % delete output stream %
-        fclose( t_f );
-
     end
+
+    %function triplet_export( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_r12, t_t12, t_r23, t_t23, t_output )
+
+        % compute common frame %
+    %    [ t_1_p_, t_1_d_, t_2_p_, t_2_d_, t_3_p_, t_3_d_ ] = triplet_frame_on_sphere_1( t_1_d, t_2_d, t_3_d, t_r12, t_r23, t_t12, t_t23 );
+
+        % compute features %
+    %    t_1_f = t_1_p_' + triplet_feature( t_1_d_, t_1_r );
+    %    t_2_f = t_2_p_' + triplet_feature( t_2_d_, t_2_r );
+    %    t_3_f = t_3_p_' + triplet_feature( t_3_d_, t_3_r );
+
+        % create output stream %
+    %    t_f = fopen( [ t_output '.disparity.xyz' ], 'w' );
+
+        % parsing points %
+    %    for t_i = 1 : size( t_1_d, 1 )
+
+            % export feature position %
+    %        fprintf( t_f, '%g %g %g 255 0 0\n', t_1_f(t_i,:) );
+
+            % export feature position %
+    %        fprintf( t_f, '%g %g %g 0 255 0\n', t_2_f(t_i,:) );
+
+            % export feature position %
+    %        fprintf( t_f, '%g %g %g 0 0 255\n', t_3_f(t_i,:) );
+
+    %    end
+
+        % delete output stream %
+    %    fclose( t_f );
+
+        % create output stream %
+    %    t_f = fopen( [ t_output '.sparse.xyz' ], 'w' );
+
+        % parsing points %
+    %    for t_i = 1 : size( t_1_d, 1 )
+
+            % compute best intesection %
+    %        t_p = triplet_intersect( t_1_p_, t_1_d_(t_i,:), t_2_p_, t_2_d_(t_i,:), t_3_p_, t_3_d_(t_i,:) );
+
+            % export point %
+    %        fprintf( t_f, '%g %g %g 192 192 192\n', t_p(1), t_p(2), t_p(3) );
+
+    %    end
+
+        % delete output stream %
+    %    fclose( t_f );
+
+    %end

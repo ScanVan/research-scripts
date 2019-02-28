@@ -137,18 +137,18 @@
         % delete output stream %
         fclose( m_f );
 
-        %figure;
-        %hold on;
-        %plot( m_vop(:,1), m_vop(:,2), '-ko', 'linewidth', 3 );
-        %plot( m_vop(1:3,1), m_vop(1:3,2), '-xr' );
-        %plot( m_vop(3:6,1), m_vop(3:6,2), '-ob' );
-        %axis( 'equal' );
+        figure;
+        hold on;
+        plot( m_vop(:,1), m_vop(:,2), '-ko', 'linewidth', 3 );
+        plot( m_vop(1:3,1), m_vop(1:3,2), '-xr' );
+        plot( m_vop(3:6,1), m_vop(3:6,2), '-ob' );
+        axis( 'equal' );
 
-        %figure;
-        %hold on;
-        %plot3( m_vop(:,1), m_vop(:,2), m_vop(:,3), 'x-r' );
-        %plot3( m_vom(:,1), m_vom(:,2), m_vom(:,3), '.k' );
-        %axis( 'equal' );
+        figure;
+        hold on;
+        plot3( m_vop(:,1), m_vop(:,2), m_vop(:,3), 'x-r' );
+        plot3( m_vom(:,1), m_vom(:,2), m_vom(:,3), '.k' );
+        axis( 'equal' );
 
     end
 
