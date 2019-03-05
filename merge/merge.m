@@ -17,13 +17,42 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function merge( m_path, m_from, m_to )
+    function merge( m_path )
 
-        % create file list %
-        m_pose = dir( [ m_path '/output/5_pose_3/*' ] );
+        % create image listing %
+        m_list = dir( [ m_path '/output/1_features/*' ] );
 
-        % create file list %
-        m_sparse = dir( [ m_path '/output/6_sparse_3/*' ] );
+        % create directory %
+        mkdir( [ m_path '/output/7_odometry' ] );
+
+        % initialise index %
+        m_index = 1;
+
+        % merging process %
+        while ( m_index < ( length( m_list ) - 2 ) )
+
+            % merge segment %
+            [ m_index, m_count, m_vom, m_vop ] = merge_segment( m_path, m_list, m_index );
+
+            % check merge count %
+            if ( m_count > 1 )
+
+                % export merged model %
+                merge_export( m_path, m_list, m_index - m_count, m_index + 1, m_vom, m_vop );
+
+            end
+
+        end
+
+    end
+
+    function [ m_index, m_count, m_vom, m_vop ] = merge_segment( m_path, m_list, m_index )
+
+        % push initial index %
+        m_push = m_index;
+
+        % initialise merge count %
+        m_count = 0;
 
         % initialise cumulative rotation matrix %
         m_rot = eye(3);
@@ -40,25 +69,27 @@
         % results - model array %
         m_vom = [];
 
-        % parsing files %
-        for m_file = max( 1, m_from ) : min( size( m_pose, 1 ), m_to )
+        % parsing listing %
+        while ( m_index < ( length( m_list ) - 2 ) )
 
-            % compute differential index - avoid ply file %
-            m_index = ( ( m_file - 1 ) * 2 ) + 1;
+            % compose triplet name %
+            m_name = [ m_list(m_index).name '_' m_list(m_index+1).name '_' m_list(m_index+2).name ];
 
             % check consistency %
-            if ( m_sparse(m_index).bytes == 0 )
+            if ( exist( [ m_path '/output/5_pose_3/' m_name ], 'file' ) == 2 )
 
-                % abort merging %
-                break
+                % display information %
+                fprintf( 2, 'Processing : %s\n', m_name );
+
+            else
+
+                % abort incremental merge %
+                break;
 
             end
 
-            % display information %
-            fprintf( 2, 'merging %s ...\n', m_pose(m_file).name );
-
             % read estimated pose %
-            m_data = dlmread( [ m_path '/output/5_pose_3/' m_pose(m_file).name ] );
+            m_data = dlmread( [ m_path '/output/5_pose_3/' m_name ] );
 
             % extarct rotation 1-2 %
             m_r12 = m_data(1:3,1:3);
@@ -72,8 +103,8 @@
             % extract translation 1-2 %
             m_t23 = m_data(1:3,8)';
 
-            % extract sparse model - avoid ply files %
-            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_sparse(m_index).name ] );
+            % extract sparse model  %
+            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name '.xyz' ] );
 
             % compute scale factor %
             m_factor = m_scl / norm( m_t12 );
@@ -98,6 +129,38 @@
             % transform model %
             m_model = merge_rotation( m_model, m_rot ) + m_pos;
 
+            % avoid initial triplet %
+            if ( length( m_vop ) > 0 )
+
+                % compute position agreement %
+                m_check = norm( m_p2 - m_vop(end,:) ) / norm( m_t23 );
+
+                % check position agreement %
+                if ( m_check < 0.1 )
+
+                    % update index %
+                    m_index = m_index + 1;
+
+                    % update merge count %
+                    m_count = m_count + 1;
+
+                else
+
+                    % abort incremental merge %
+                    break;
+
+                end
+
+            else
+
+                % update index %
+                m_index = m_index + 1;
+
+                % update merge count %
+                m_count = m_count + 1;
+
+            end
+
             % store positions %
             m_vop = [ m_vop; m_p1; m_p2; m_p3 ];
 
@@ -105,7 +168,7 @@
             m_vom = [ m_vom; m_model ];
 
             % update cumulative matrix %
-            m_rot = m_rot * ( m_r12' ); % to check %
+            m_rot = m_rot * ( m_r12' );
 
             % update cumulative position %
             m_pos = m_p2;
@@ -115,40 +178,18 @@
 
         end
 
-        % create output stream %
-        m_f = fopen( [ m_path '/output/7_odometry/nh_odometry.xyz' ], 'w' );
+    end
 
-        % parsing model %
-        for m_i = 1 : size( m_vom, 1 )
+    function merge_export( m_path, m_list, m_start, m_stop, m_vom, m_vop )
 
-            % export scene point %
-            fprintf( m_f, '%g %g %g 224 224 224\n', m_vom(m_i,:) );
+        % create exportation name %
+        m_name = [ m_path '/output/7_odometry/' m_list(m_start).name '_' m_list(m_stop).name ];
 
-        end
+        % export model data %
+        dlmwrite( [ m_name '.xyz' ], m_vom, ' ' );
 
-        % parsing position %
-        for m_i = 1 : size( m_vop, 1 )
-
-            % export position %
-            fprintf( m_f, '%g %g %g 255 0 0\n', m_vop(m_i,:) );
-
-        end
-
-        % delete output stream %
-        fclose( m_f );
-
-        figure;
-        hold on;
-        plot( m_vop(:,1), m_vop(:,2), '-ko', 'linewidth', 3 );
-        plot( m_vop(1:3,1), m_vop(1:3,2), '-xr' );
-        plot( m_vop(3:6,1), m_vop(3:6,2), '-ob' );
-        axis( 'equal' );
-
-        figure;
-        hold on;
-        plot3( m_vop(:,1), m_vop(:,2), m_vop(:,3), 'x-r' );
-        plot3( m_vom(:,1), m_vom(:,2), m_vom(:,3), '.k' );
-        axis( 'equal' );
+        % export visual odometry %
+        dlmwrite( [ m_name '-vo.xyz' ], m_vop, ' ' );
 
     end
 
