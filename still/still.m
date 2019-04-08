@@ -17,10 +17,16 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function still( s_path, s_size )
+    function still( s_path, s_size, s_threshold )
 
         % create listing %
         s_list = dir( [ s_path '/output/1_features/*' ] );
+
+        % initialise array %
+        s_crit = zeros( size( s_list, 1 ), 1 );
+
+        % initialise array %
+        s_select = zeros( size( s_list, 1 ), 1 );
 
         % parsing listing %
         for s_i = 2 : size( s_list, 1 )
@@ -46,19 +52,33 @@
             s_dist = sqrt( s_comp_x + s_comp_y );
 
             % compute criterion %
-            s_crit(s_i - 1) = mean( s_dist(:) ) * std( s_dist(:) );
+            s_crit(s_i) = mean( s_dist(:) ) * std( s_dist(:) );
+
+            % apply cirterion %
+            if ( s_crit(s_i) > s_threshold )
+
+                % set image as active in the dataset (not part of still area) %
+                s_select(s_i) = 1;
+
+            end
 
         end
 
         % display criterion %
-        still_show( s_crit, 'Composite normalised criterion', 'export.png' );
+        still_show( s_crit, s_select, s_threshold, 'export.png' );
 
     end
 
-    function still_show( s_crit, s_title, s_export )
+    function still_show( s_crit, s_select, s_threshold, s_export )
+
+        % extract size %
+        s_size = size( s_select, 1 );
 
         % create figure %
         figure;
+
+        % create subplot %
+        subplot( 6, 1, [ 1:5 ] );
 
         % figure configuration %
         hold on;
@@ -66,17 +86,33 @@
         box  on;
 
         % display criterion %
-        plot( [2:size(s_crit,2)+1], s_crit, '-r' );
+        plot( [1:s_size], s_crit, '-r' );
+
+        % display threshold %
+        plot( [1,s_size], [1,1] * s_threshold, 'b-' );
 
         % axis configuration %
         xlabel( 'Image index' );
         ylabel( 'Criterion' );
 
-        % ad-hoc axis scaling (avoid spikes) %
-        ylim( [ 0, 0.002 ] );
+        % axis configuration %
+        axis( [ 1, s_size, 0, 0.002 ] );
 
-        % figure title %
-        title( s_title );
+        % create subplot %
+        subplot( 6, 1, 6 );
+
+        % display selection function %
+        s_area = area( [1:s_size], s_select );
+
+        % area plot configuration %
+        set( s_area(1), 'FaceColor', 'r' );
+
+        % area plot configuration %
+        set( s_area(1), 'EdgeColor', 'none' );
+
+        % axis configuration %
+        axis( [ 1, s_size, 0, 1 ] );
+
 
         % check exportation %
         if ( exist( 's_export', 'var' ) )

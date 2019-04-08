@@ -44,10 +44,10 @@
         end
 
         % convert to cartesian coordinates %
-        s_cart = still_gps_convert( s_pos, 6378137.0, 298.257223563 )
+        s_cart = still_gps_convert( s_pos, 6378137.0, 298.257223563 );
 
         % mesaure step %
-        s_step = 32;
+        s_step = 4;
 
         % parsing position %
         for s_i = s_step + 1 : size( s_cart, 1 )
