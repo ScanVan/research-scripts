@@ -25,7 +25,7 @@
         % parsing listing %
         for s_i = 2 : size( s_list, 1 )
 
-            % display image name %
+            % display information %
             fprintf( 2, 'Checking %s ...\n', s_list(s_i).name );
 
             % compose matches file path %
@@ -46,11 +46,11 @@
             s_dist = sqrt( s_comp_x + s_comp_y );
 
             % compute criterion %
-            s_crit(s_i) = mean( s_dist(:) ) * std( s_dist(:) );
+            s_crit(s_i - 1) = mean( s_dist(:) ) * std( s_dist(:) );
 
         end
 
-        % display possible criterion %
+        % display criterion %
         still_show( s_crit, 'Composite normalised criterion', 'export.png' );
 
     end
