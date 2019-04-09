@@ -48,6 +48,37 @@
         % create matches set %
         d_match = densify_match( d_f21u, d_f21v, d_f23u, d_f23v, d_mask );
 
+        % display information %
+        fprintf( 2, 'Convert matches\n' );
+
+        % convert matches %
+        d_vector_1 = densify_cartesian( d_match(:,1:2), size( d_f21u, 2 ), size( d_f21u, 1 ) );
+        d_vector_2 = densify_cartesian( d_match(:,3:4), size( d_f21u, 2 ), size( d_f21u, 1 ) );
+        d_vector_3 = densify_cartesian( d_match(:,5:6), size( d_f21u, 2 ), size( d_f21u, 1 ) );
+
+        % display information %
+        fprintf( 2, 'Alignment to frame of sphere 1\n' );
+
+        % expresse scene in sphere 1 frame %
+        [ d_1_p, d_1_d, d_2_p, d_2_d, d_3_p, d_3_d ] = densify_frame_on_sphere_1( d_vector_1, d_vector_2, d_vector_3, d_r12, d_r23, d_t12, d_t23 );
+
+        % display information %
+        fprintf( 2, 'Compute scene and error\n' );
+
+        % compute scene %
+        [ d_1_r, d_2_r, d_3_r, d_1_e, d_2_e, d_3_e, d_scene ] = densify_compute( d_1_p, d_1_d, d_2_p, d_2_d, d_3_p, d_3_d );
+
+        % display information %
+        fprintf( 2, 'Filter scene\n' );
+
+        % filter scene %
+        d_scene = densify_filter( d_scene, d_1_e, d_2_e, d_3_e, d_t12, d_t23 );
+
+        % export scene %
+        dlmwrite( 'scene.xyz', d_scene, ' ' );
+
+        %figure; hold on; plot( d_1_e, '-r' ); plot( d_2_e, '-g' ); plot( d_3_e, '-b' );
+        %figure; hold on; plot3( d_scene(:,1), d_scene(:,2), d_scene(:,3), '.r' ); set( gca, 'ydir', 'reverse' );
         %figure; hold on; plot( d_match(:,1), d_match(:,2), '.r' ); set( gca, 'ydir', 'reverse' );
 
     end
@@ -110,4 +141,142 @@
         end
 
     end
+
+    function d_point = densify_cartesian( d_match, d_width, d_height )
+
+        % coordinates re-normalisation %
+        d_match(:,1) = ( ( d_match(:,1) - 1 ) / d_width ) * 2.0 * pi;
+
+        % coordinates re-normalisation %
+        d_match(:,2) = ( ( d_match(:,2) / d_height ) - 0.5 ) * pi;
+
+        % initialise memory %
+        d_point = zeros( size( d_match, 1 ), 3 );
+
+        % coordinates conversion %
+        d_point( :, 1 ) = cos( d_match( :, 2 ) ) .* cos( d_match( :, 1 ) );
+        d_point( :, 2 ) = cos( d_match( :, 2 ) ) .* sin( d_match( :, 1 ) );
+        d_point( :, 3 ) = sin( d_match( :, 2 ) );
+
+    end
+
+    function d_rotate = densify_rotate( d_p, d_r )
+
+        % initialise memory %
+        d_rotate = zeros( size( d_p ) );
+
+        % parsing points %
+        for d_i = 1 : size( d_p, 1 )
+
+            % apply rotation %
+            d_rotate( d_i, : ) = ( d_r * d_p( d_i, : )' )';
+
+        end
+
+    end
+
+    function [ d_1_p_, d_1_d_, d_2_p_, d_2_d_, d_3_p_, d_3_d_ ] = densify_frame_on_sphere_1( d_1_d, d_2_d, d_3_d, d_r12, d_r23, d_t12, d_t23 )
+
+        % common frame - second camera - direction %
+        d_1_d_ = d_1_d;
+
+        % common frame - second camera - direction %
+        d_2_d_ = densify_rotate( d_2_d, d_r12' );
+
+        % common frame - second camera - direction %
+        d_3_d_ = densify_rotate( densify_rotate( d_3_d, d_r23' ), d_r12' );
+
+        % common frame - second camera - centers %
+        d_1_p_ = + zeros( 3, 1 );
+
+        % common frame - second camera - centers %
+        d_2_p_ = - d_r12' * d_t12;
+
+        % common frame - second camera - centers %
+        d_3_p_ = + d_2_p_ - d_r12' * d_r23' * d_t23;
+
+    end
+
+    function d_inter = densify_intersect( d_1_p, d_1_d, d_2_p, d_2_d, d_3_p, d_3_d )
+
+        % intermediate computation %
+        d_w1 = eye(3,3) - d_1_d' * d_1_d;
+        d_q1 = d_w1 * d_1_p;
+
+        % intermediate computation %
+        d_w2 = eye(3,3) - d_2_d' * d_2_d;
+        d_q2 = d_w2 * d_2_p;
+
+        % intermediate computation %
+        d_w3 = eye(3,3) - d_3_d' * d_3_d;
+        d_q3 = d_w3 * d_3_p;
+
+        % compute best intersection point %
+        d_inter = ( inv( d_w1 + d_w2 + d_w3 ) * ( d_q1 + d_q2 + d_q3 ) )';
+
+    end
+
+    function [ d_1_r, d_2_r, d_3_r, d_1_e, d_2_e, d_3_e, d_scene ] = densify_compute( d_1_p, d_1_d, d_2_p, d_2_d, d_3_p, d_3_d )
+
+        % initialise memory %
+        d_1_e = zeros( size( d_1_d, 1 ), 1 );
+        d_2_e = zeros( size( d_2_d, 1 ), 1 );
+        d_3_e = zeros( size( d_3_d, 1 ), 1 );
+
+        % initialise memory %
+        d_scene = zeros( size( d_1_d, 1 ), 3 );
+
+        % parsing features %
+        for d_i = 1 : size( d_1_d, 1 )
+
+            % compute optimised intersection %
+            d_inter = densify_intersect( d_1_p, d_1_d(d_i,:), d_2_p, d_2_d(d_i,:), d_3_p, d_3_d(d_i,:) );
+
+            % push sence point %
+            d_scene(d_i,1:3) = d_inter;
+
+            % compute radius correction %
+            d_1_r(d_i) = dot( d_1_d(d_i,:), d_inter - d_1_p' );
+            d_2_r(d_i) = dot( d_2_d(d_i,:), d_inter - d_2_p' );
+            d_3_r(d_i) = dot( d_3_d(d_i,:), d_inter - d_3_p' );
+
+            % compute intersection disparity %
+            d_1_e(d_i) = norm( d_1_p' + d_1_d(d_i,:) * d_1_r(d_i) - d_inter );
+            d_2_e(d_i) = norm( d_2_p' + d_2_d(d_i,:) * d_2_r(d_i) - d_inter );
+            d_3_e(d_i) = norm( d_3_p' + d_3_d(d_i,:) * d_3_r(d_i) - d_inter );
+
+        end
+
+    end
+
+    function d_filter = densify_filter( d_scene, d_1_e, d_2_e, d_3_e, d_t12, d_t23 )
+
+        % compute naive condition %
+        d_norm = ( 0.5 * ( norm(d_t12) + norm(d_t23) ) ) * 0.05;
+
+        % initialise index %
+        d_k = 1;
+
+        % parsing scene %
+        for d_i = 1 : size( d_scene, 1 )
+
+            % filtering condition %
+            if ( d_1_e(d_i) < d_norm )
+            if ( d_2_e(d_i) < d_norm )
+            if ( d_3_e(d_i) < d_norm )
+
+                % select scene point %
+                d_filter(d_k,:) = d_scene(d_i,:);
+
+                % update index %
+                d_k = d_k + 1;
+
+            end
+            end
+            end
+
+        end
+
+    end
+
 
