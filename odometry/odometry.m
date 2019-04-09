@@ -26,7 +26,7 @@
         addpath( '../core' );
 
         % stage : pose estimation %
-        odometry_stage_pose_estimation( o_path, o_width, o_height );
+        %odometry_stage_pose_estimation( o_path, o_width, o_height );
 
         % stage : triplet incremental merge %
         odometry_stage_incremental_merge( o_path );

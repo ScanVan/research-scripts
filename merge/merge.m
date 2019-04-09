@@ -23,50 +23,57 @@
         m_list = dir( [ m_path '/output/1_features/*' ] );
 
         % create directory %
-        mkdir( [ m_path '/output/7_odometry' ] );
+        mkdir( [ m_path '/output/8_models_derive/' ] );
 
         % initialise index %
         m_index = 1;
 
+        % initialise index %
+        m_parse = 1;
+
         % merging process %
         while ( m_index < ( length( m_list ) - 2 ) )
 
+            % compose segment path %
+            m_segment = [ m_path '/output/8_models_derive/' num2str( m_parse ) ];
+
+            % create directory %
+            mkdir( m_segment );
+
+            % create directory %
+            mkdir( [ m_segment '/image' ] );
+
             % merge segment %
-            [ m_index, m_count, m_vom, m_vop ] = merge_segment( m_path, m_list, m_index );
+            [ m_index, m_vom, m_vop ] = merge_segment( m_path, m_list, m_index, m_segment );
 
-            % check merge count %
-            if ( m_count > 1 )
+            % export merged model %
+            merge_export( m_segment, m_vom, m_vop );
 
-                % export merged model %
-                merge_export( m_path, m_list, m_index - m_count, m_index + 1, m_vom, m_vop );
-
-            end
+            % update index %
+            m_parse = m_parse + 1;
 
         end
 
     end
 
-    function [ m_index, m_count, m_vom, m_vop ] = merge_segment( m_path, m_list, m_index )
+    function [ m_index, m_vom, m_vop ] = merge_segment( m_path, m_list, m_index, m_export )
 
         % push initial index %
         m_push = m_index;
 
-        % initialise merge count %
-        m_count = 0;
-
-        % initialise cumulative rotation matrix %
+        % cumulative matrix %
         m_rot = eye(3);
 
-        % initialise cumulative position %
+        % cumulative position %
         m_pos = zeros(1,3);
 
-        % initialise cumulative scale %
+        % cumulative scale %
         m_scl = 1;
 
-        % results - position array %
+        % initialise odometry %
         m_vop = [];
 
-        % results - model array %
+        % initialise model %
         m_vom = [];
 
         % parsing listing %
@@ -84,7 +91,7 @@
             else
 
                 % abort incremental merge %
-                break;
+                error( 'triplet not found' );
 
             end
 
@@ -104,7 +111,7 @@
             m_t23 = m_data(1:3,8)';
 
             % extract sparse model  %
-            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name '.xyz' ] );
+            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name ] );
 
             % compute scale factor %
             m_factor = m_scl / norm( m_t12 );
@@ -129,8 +136,24 @@
             % transform model %
             m_model = merge_rotation( m_model, m_rot ) + m_pos;
 
-            % avoid initial triplet %
-            if ( length( m_vop ) > 0 )
+            % check bootstrap state %
+            if ( m_index == m_push )
+
+                % create links %
+                merge_link( m_export, m_list(m_index  ).name );
+                merge_link( m_export, m_list(m_index+1).name );
+                merge_link( m_export, m_list(m_index+2).name );
+
+                % update index %
+                m_index = m_index + 1;
+
+                % initialise position %
+                m_vop = [ m_p1; m_p2; m_p3 ];
+
+                % initialise model %
+                m_vom = m_model;
+
+            else
 
                 % compute position agreement %
                 m_check = norm( m_p2 - m_vop(end,:) ) / norm( m_t23 );
@@ -138,34 +161,26 @@
                 % check position agreement %
                 if ( m_check < 0.1 )
 
+                    % create link %
+                    merge_link( m_export, m_list(m_index+2).name );
+
                     % update index %
                     m_index = m_index + 1;
 
-                    % update merge count %
-                    m_count = m_count + 1;
+                    % update position %
+                    m_vop = [ m_vop; m_p3 ];
+
+                    % update model %
+                    m_vom = [ m_vom; m_model ];
 
                 else
 
                     % abort incremental merge %
-                    break;
+                    return;
 
                 end
 
-            else
-
-                % update index %
-                m_index = m_index + 1;
-
-                % update merge count %
-                m_count = m_count + 1;
-
             end
-
-            % store positions %
-            m_vop = [ m_vop; m_p1; m_p2; m_p3 ];
-
-            % store model %
-            m_vom = [ m_vom; m_model ];
 
             % update cumulative matrix %
             m_rot = m_rot * ( m_r12' );
@@ -180,16 +195,20 @@
 
     end
 
-    function merge_export( m_path, m_list, m_start, m_stop, m_vom, m_vop )
+    function merge_link( m_path, m_image )
 
-        % create exportation name %
-        m_name = [ m_path '/output/7_odometry/' m_list(m_start).name '_' m_list(m_stop).name ];
+        % create link %
+        fclose( fopen( [ m_path '/image/' m_image ], 'w' ) );
+
+    end
+
+    function merge_export( m_path, m_vom, m_vop )
 
         % export model data %
-        dlmwrite( [ m_name '.xyz' ], m_vom, ' ' );
+        dlmwrite( [ m_path '/model.xyz' ], m_vom, ' ' );
 
         % export visual odometry %
-        dlmwrite( [ m_name '-vo.xyz' ], m_vop, ' ' );
+        dlmwrite( [ m_path '/path.xyz' ], m_vop, ' ' );
 
     end
 
