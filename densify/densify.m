@@ -17,6 +17,17 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+    % Notes : This densification process uses the result of the optical flows
+    % performed on three successive images :
+    %
+    %   https://people.csail.mit.edu/celiu/OpticalFlow/
+    %
+    % The optical flows are provided as arrays (mapping the images) to the script
+    % that uses them to compute dense matches set for the image triplet.
+    %
+    % The opical flows have to be computed following : image_2 -> image_1 and
+    % image_2 -> image_3.
+
     function densify( d_path, d_estimation, d_f21u_path, d_f21v_path, d_f23u_path, d_f23v_path, d_mask_path )
 
         % display information %
