@@ -27,6 +27,13 @@
     %
     % The opical flows have to be computed following : image_2 -> image_1 and
     % image_2 -> image_3.
+    %
+    % Research : Point to keep in mind for further developments :
+    %
+    % - RGB image vs Grayscale image
+    % - Blur or adaptative blur on image to improve optical flow
+    % - Need a better filtering process (spherical epipolar + other)
+    % - Expend histogram of image to the maximum range (+ blur ?)
 
     function densify( d_path, d_estimation, d_f21u_path, d_f21v_path, d_f23u_path, d_f23v_path, d_mask_path )
 
