@@ -17,7 +17,7 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function still( s_path, s_size, s_threshold )
+    function still( s_path, s_threshold, s_width, s_height )
 
         % create listing %
         s_list = dir( [ s_path '/output/1_features/*' ] );
@@ -38,18 +38,10 @@
             s_name = [ s_list(s_i-1).name '_' s_list(s_i).name ];
 
             % read matches %
-            s_match = dlmread( [ s_path '/output/2_matches/' s_name ] ) / s_size;
-
-            % compute distance components %
-            s_comp_x = s_match(:,1) - s_match(:,3);
-            s_comp_y = s_match(:,2) - s_match(:,4);
-
-            % compute square components %
-            s_comp_x = s_comp_x .* s_comp_x;
-            s_comp_y = s_comp_y .* s_comp_y;
+            s_match = dlmread( [ s_path '/output/2_matches/' s_name ] );
 
             % compute distances %
-            s_dist = sqrt( s_comp_x + s_comp_y );
+            s_dist = still_distance( s_match, s_width, s_height );
 
             % compute criterion %
             s_crit(s_i) = mean( s_dist(:) ) * std( s_dist(:) );
@@ -66,6 +58,37 @@
 
         % display criterion %
         still_show( s_crit, s_select, s_threshold, 'export.png' );
+
+    end
+
+    function s_dist = still_distance( s_match, s_width, s_height )
+
+        % compute features vectors %
+        s_vect_a = still_cartesian( s_match(:,1:2), s_width, s_height );
+
+        % compute features vectors %
+        s_vect_b = still_cartesian( s_match(:,3:4), s_width, s_height );
+
+        % compute dot products %
+        s_dist = acos( dot( s_vect_a', s_vect_b' )' );
+
+    end
+
+    function s_point = still_cartesian( s_match, s_width, s_height )
+
+        % coordinates re-normalisation %
+        s_match(:,1) = ( ( s_match(:,1) - 1 ) / s_width ) * 2.0 * pi;
+
+        % coordinates re-normalisation %
+        s_match(:,2) = ( ( s_match(:,2) / s_height ) - 0.5 ) * pi;
+
+        % initialise memory %
+        s_point = zeros( size( s_match, 1 ), 3 );
+
+        % coordinates conversion %
+        s_point( :, 1 ) = cos( s_match( :, 2 ) ) .* cos( s_match( :, 1 ) );
+        s_point( :, 2 ) = cos( s_match( :, 2 ) ) .* sin( s_match( :, 1 ) );
+        s_point( :, 3 ) = sin( s_match( :, 2 ) );
 
     end
 
@@ -96,22 +119,24 @@
         ylabel( 'Criterion' );
 
         % axis configuration %
-        axis( [ 1, s_size, 0, 0.002 ] );
+        xlim( [ 1, s_size ] );
 
         % create subplot %
         subplot( 6, 1, 6 );
 
         % display selection function %
-        s_area = area( [1:s_size], s_select );
+        %s_area = area( [1:s_size], s_select );
 
         % area plot configuration %
-        set( s_area(1), 'FaceColor', 'r' );
+        %set( s_area(1), 'FaceColor', 'r' );
 
         % area plot configuration %
-        set( s_area(1), 'EdgeColor', 'none' );
+        %set( s_area(1), 'EdgeColor', 'none' );
+
+        imagesc( s_select' ); colormap( [ [ 0, 0, 0 ]; [ 1, 0, 0 ] ] );
 
         % axis configuration %
-        axis( [ 1, s_size, 0, 1 ] );
+        axis( [ 0, s_size - 1, 0, 1 ] + 0.5 );
 
 
         % check exportation %
