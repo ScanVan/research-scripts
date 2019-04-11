@@ -61,6 +61,18 @@
         % display summary %
         fprintf( 2, 'Calibrated triplet(s) %i over %i (%0.2f%%)\n', sum( a_tri_state ), length( a_tri_list ), a_ratio * 100.0 );
 
+        % extract triplet estimation information %
+        [ a_tri_iter, a_tri_ifeat, a_tri_ffeat ] = analyse_triplet_information( a_path, a_tri_list );
+
+        % display plot %
+        analyse_triplet_plot( a_tri_state, a_tri_iter, 'Iteration', 'triplet_iteration.png' );
+
+        % display plot %
+        analyse_triplet_plot( a_tri_state, a_tri_ifeat, 'Features (initial)', 'triplet_ifeatures.png' );
+
+        % display plot %
+        analyse_triplet_plot( a_tri_state, a_tri_ffeat, 'Featrues (final)', 'triplet_ffeatures.png' );
+
     end
 
     function a_img_list = analyse_image_list( a_path )
@@ -152,6 +164,81 @@
 
             % update index %
             a_k = a_k + 1;
+
+        end
+
+    end
+
+    function [ a_tri_iter, a_tri_ifeat, a_tri_ffeat ] = analyse_triplet_information( a_path, a_tri_list )
+
+        % initialise arrays %
+        a_tri_iter = zeros( length( a_tri_list ), 1 );
+
+        % initialise arrays %
+        a_tri_ifeat = zeros( length( a_tri_list ), 1 );
+        a_tri_ffeat = zeros( length( a_tri_list ), 1 );
+
+        % parsing triplet list %
+        for a_i = 1 : length( a_tri_list )
+
+            % read pose estimation result file %
+            a_content = textread( [ a_path '/output/5_pose_3/' a_tri_list(a_i).name ], '%s' );
+
+            % extract information %
+            a_tri_iter(a_i) = str2num( cell2mat( a_content(29) ) );
+
+            % extract information %
+            a_tri_ifeat(a_i) = str2num( cell2mat( a_content(35) ) );
+
+            % extract information %
+            a_tri_ffeat(a_i) = str2num( cell2mat( a_content(40) ) );
+
+        end
+
+    end
+
+    function analyse_triplet_plot( a_tri_state, a_tri_information, a_label, a_export )
+
+        % create figure %
+        figure;
+
+        % subplot configuration %
+        subplot(6,1,[1:5]);
+
+        % figure configuration %
+        hold on;
+        grid on;
+        box  on;
+
+        % display information %
+        plot( [1:length(a_tri_state)], a_tri_information, '-r' );
+
+        % axis label %
+        xlabel( 'Triplets' );
+        ylabel( a_label );
+
+        % axis configuration %
+        axis( [ 1 length(a_tri_state) 0 max(a_tri_information ) ] );
+
+        % subplot configuration %
+        subplot(6,1,6);
+
+        % figure configuration %
+        hold on;
+        grid on;
+        box  on;
+
+        % display states %
+        imagesc( a_tri_state' ); colormap( [ [ 0, 0, 0 ]; [ 1, 0, 0 ] ] );
+
+        % axis configuration %
+        axis( [ 1 length(a_tri_state) 0 1 ] + 0.5 );
+
+        % check exportation %
+        if ( exist( 'a_export', 'var' ) )
+
+            % export figure %
+            print( '-dpng', '-r300', a_export );
 
         end
 
