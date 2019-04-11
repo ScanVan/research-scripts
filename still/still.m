@@ -124,15 +124,7 @@
         % create subplot %
         subplot( 6, 1, 6 );
 
-        % display selection function %
-        %s_area = area( [1:s_size], s_select );
-
-        % area plot configuration %
-        %set( s_area(1), 'FaceColor', 'r' );
-
-        % area plot configuration %
-        %set( s_area(1), 'EdgeColor', 'none' );
-
+        % display threshold-based image selection mapping %
         imagesc( s_select' ); colormap( [ [ 0, 0, 0 ]; [ 1, 0, 0 ] ] );
 
         % axis configuration %
