@@ -165,7 +165,7 @@
                     % merge_link( m_export, m_list(m_index+2).name );
 
                     % create link with transformation %
-                    merge_link_rt( m_export, m_list(m_index+2).name, m_rot * ( m_r12' * m_r23' ) ); % need to be checked %
+                    merge_link_rt( m_export, m_list(m_index+2).name, m_rot * ( m_r12' * m_r23' ), m_p3 ); % need to be checked %
 
                     % update index %
                     m_index = m_index + 1;
