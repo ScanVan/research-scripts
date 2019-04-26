@@ -202,6 +202,16 @@
 
     end
 
+    function merge_link_rt( m_path, m_image, m_r, m_t )
+
+        % compose exportation matrix %
+        m_transform = [ m_r, m_t ];
+
+        % export link with transformation %
+        dlmwrite( [ m_path '/image/' m_image ], m_transform, ' ' );
+
+    end
+
     function merge_export( m_path, m_vom, m_vop )
 
         % export model data %
