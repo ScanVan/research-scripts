@@ -140,9 +140,13 @@
             if ( m_index == m_push )
 
                 % create links %
-                merge_link( m_export, m_list(m_index  ).name );
-                merge_link( m_export, m_list(m_index+1).name );
-                merge_link( m_export, m_list(m_index+2).name );
+                %merge_link( m_export, m_list(m_index  ).name );
+                %merge_link( m_export, m_list(m_index+1).name );
+                %merge_link( m_export, m_list(m_index+2).name );
+
+                merge_link_rt( m_export, m_list(m_index).name, m_rot, m_p1, m_factor ); % need to be checked %
+                %merge_link_rt( m_export, m_list(m_index+1).name, m_rot * ( m_r12' ), m_p2 ); % need to be checked %
+                %merge_link_rt( m_export, m_list(m_index+2).name, m_rot * ( m_r12' * m_r23' ), m_p3 ); % need to be checked %
 
                 % update index %
                 m_index = m_index + 1;
@@ -165,7 +169,8 @@
                     % merge_link( m_export, m_list(m_index+2).name );
 
                     % create link with transformation %
-                    merge_link_rt( m_export, m_list(m_index+2).name, m_rot * ( m_r12' * m_r23' ), m_p3 ); % need to be checked %
+                    merge_link_rt( m_export, m_list(m_index).name, m_rot, m_p1, m_factor );
+                    %merge_link_rt( m_export, m_list(m_index+2).name, m_rot * ( m_r12' * m_r23' ), m_p3 ); % need to be checked %
 
                     % update index %
                     m_index = m_index + 1;
@@ -205,10 +210,10 @@
 
     end
 
-    function merge_link_rt( m_path, m_image, m_r, m_t )
+    function merge_link_rt( m_path, m_image, m_r, m_t, m_f )
 
         % compose exportation matrix %
-        m_transform = [ m_r, m_t ];
+        m_transform = [ m_r, m_t', [ m_f; m_f; m_f ] ];
 
         % export link with transformation %
         dlmwrite( [ m_path '/image/' m_image ], m_transform, ' ' );
