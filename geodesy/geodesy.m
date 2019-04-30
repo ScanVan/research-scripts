@@ -53,8 +53,6 @@
                 % align segment %
                 geodesy_segment( g_path, g_import, g_export, g_source, g_image );
 
-                return
-
             end
 
         end
