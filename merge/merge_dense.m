@@ -20,7 +20,10 @@
     function merge_dense( m_path )
 
         % create connected segment listing %
-        m_list = dir( [ m_path '/output/9_geodesy_derive/*' ] );
+        m_list = dir( [ m_path '/output/9_geodesy_derive' ] );
+
+        % remove special directories %
+        m_list = m_list( ~ ismember( {m_list.name}, {'.', '..'} ) );
 
         % create directory %
         mkdir( [ m_path '/output/11_dense_derive' ] );
@@ -43,7 +46,7 @@
     function merge_dense_segment( m_path, m_index )
 
         % create image listing %
-        m_list = dir( [ m_path '/output/8_models_derive/' m_index '/image/*' ] );
+        m_list = dir( [ m_path '/output/9_geodesy_derive/' m_index '/image/*' ] );
 
         % parsing image listing %
         for m_parse = 1 : size( m_list, 1 ) - 2
@@ -55,7 +58,7 @@
             fprintf( 2, 'processing : %s ...\n', m_name );
 
             % read triplet absolute transformation %
-            m_transform = dlmread( [ m_path '/output/8_models_derive/' m_index '/image/' m_list(m_parse).name ] );
+            m_transform = dlmread( [ m_path '/output/9_geodesy_derive/' m_index '/image/' m_list(m_parse).name ] );
 
             % extract absolute rotation %
             m_r = m_transform(1:3,1:3);

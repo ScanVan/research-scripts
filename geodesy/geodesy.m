@@ -106,7 +106,7 @@
             g_trans(1:3,4) = g_r' * ( ( g_trans(1:3,4) * g_s ) - g_t );
 
             % apply transformation %
-            g_trans(1:3,4) = g_trans(1:3,5) * g_s;
+            g_trans(1:3,5) = g_trans(1:3,5) * g_s;
 
             % export corrected transformation %
             dlmwrite( [ g_export '/image/' g_list(g_i).name ], g_trans, ' ' );
