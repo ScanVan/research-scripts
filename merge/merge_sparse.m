@@ -47,7 +47,7 @@
             [ m_index, m_vom, m_vop ] = merge_sparse_segment( m_path, m_list, m_index, m_segment );
 
             % export merged model %
-            merge_export( m_segment, m_vom, m_vop );
+            merge_sparse_export( m_segment, m_vom, m_vop );
 
             % update index %
             m_parse = m_parse + 1;
@@ -132,10 +132,7 @@
                 m_index = m_index + 1;
 
                 % predict position %
-                m_predict = m_pos - m_r12' * m_t12;
-
-                % predict position %
-                m_predict = m_predict - m_r12' * m_r23' * m_t23;
+                m_predict = m_pos - m_r12' * m_t12 - m_r12' * m_r23' * m_t23;
 
             else
 
@@ -189,4 +186,15 @@
         dlmwrite( [ m_path '/image/' m_image ], m_transform, ' ' );
 
     end
+
+    function merge_sparse_export( m_path, m_vom, m_vop )
+
+        % export sparse model %
+        dlmwrite( [ m_path '/model.xyz' ], m_vom, ' ' );
+
+        % export sparse odometry %
+        dlmwrite( [ m_path '/path.xyz' ], m_vop, ' ' );
+
+    end
+
 
