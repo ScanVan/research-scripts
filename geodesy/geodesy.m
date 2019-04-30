@@ -18,120 +18,128 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function geodesy( g_root, g_path )
+    function geodesy( g_path )
 
-        % import source dataset path %
-        g_source = [ g_root '/' strtrim( fileread( [ g_root '/' g_path '/input/input_dataset.txt' ] ) ) ];
+        % compose source dataset path %
+        g_source = [ g_path '/../../../' strtrim( fileread( [ g_path '/input/input_dataset.txt' ] ) ) ];
 
         % create segment listing %
-        g_list = dir( [ g_root '/' g_path '/output/8_models_derive/' ] );
+        g_list = dir( [ g_path '/output/8_models_derive/*' ] );
+
+        % create directory %
+        mkdir( [ g_path '/output/9_geodesy_derive' ] );
 
         % parsing segment %
         for g_i = 1 : length( g_list )
 
-            % avoid redirection %
-            if ( strcmp( g_list(g_i).name, '.' ) == 1 )
+            % create segment directory %
+            g_import = [ g_path '/output/8_models_derive/' g_list(g_i).name ];
 
-                % continue parsing %
-                continue
+            % create image listing %
+            g_image = dir( [ g_import '/image/*' ] );
+
+            % check image count %
+            if ( length( g_image ) >= 16 )
+
+                % display information %
+                fprintf( 2, 'Processing segment %s ...\n', g_list(g_i).name );
+
+                % create segment path %
+                g_export = [ g_path '/output/9_geodesy_derive/' g_list(g_i).name ];
+
+                % create segment directory %
+                mkdir( g_export );
+
+                % align segment %
+                geodesy_segment( g_path, g_import, g_export, g_source, g_image );
+
+                return
 
             end
-
-            % avoid redirection %
-            if ( strcmp( g_list(g_i).name, '..' ) == 1 )
-
-                % continue parsing %
-                continue
-
-            end
-
-            % process segment %
-            geodesy_segment( [ g_root '/' g_path ], [ g_root '/' g_path '/output/8_models_derive/' g_list(g_i).name ], g_list(g_i).name, g_source );
 
         end
 
     end
 
-    function geodesy_segment( g_export, g_path, g_name, g_source )
+    function geodesy_segment( g_path, g_import, g_export, g_source, g_list )
 
-        % create link listing %
-        g_list = dir( [ g_path '/image/*' ] );
+        % import track : gps %
+        g_gtrack = geodesy_segment_track_gps( g_source, g_list );
 
-        % check segment size %
-        if ( length( g_list ) < 16 )
+        % import track : odometry %
+        g_otrack = dlmread( [ g_import '/path.xyz' ] );
 
-            % abort process %
-            return;
+        % translate track : gps % temporary
+        g_gtrack = g_gtrack - [ 4.3925e+06, 5.5620e+05, 4.5763e+06 ];
 
-        end
+        % compute transformation %
+        [ g_r, g_t, g_s ] = geodesy_align( g_gtrack, g_otrack );
 
-        % compose exportation path %
-        g_export = [ g_export '/output/9_geodesy_derive' ];
+        % apply transformation %
+        g_otrack = geodesy_align_apply( g_otrack, g_r, g_t, g_s );
 
-        % create directory %
-        mkdir( g_export );
+        % export aligned track %
+        dlmwrite( [ g_export '/path.xyz' ], g_otrack, ' ' );
 
-        % compose exportation path %
-        g_export = [ g_export '/' g_name ];
+        % read sparse model %
+        g_model = dlmread( [ g_import '/model.xyz' ] );
 
-        % create directory %
-        mkdir( g_export );
+        % apply transformation %
+        g_model = geodesy_align_apply( g_model, g_r, g_t, g_s );
 
-        % import GPS information %
-        g_gps = geodesy_segment_gps( g_path, g_source, g_list );
-
-        % import segment track %
-        g_track = dlmread( [ g_path '/path.xyz' ] );
-
-        % convert GPS ellipsoidal to cartesian %
-        g_gps = geodesy_cartesian( g_gps, 6378137.0, 298.257223563 );
-
-        % temporary %
-        g_gps(:,1) = g_gps(:,1) - 4.3925e+06;
-        g_gps(:,2) = g_gps(:,2) - 5.5620e+05;
-        g_gps(:,3) = g_gps(:,3) - 4.5763e+06;
-
-        % compute alignement transformation %
-        [ g_r, g_t, g_s ] = geodesy_align_detect( g_gps, g_track );
-
-        % align visual odometry %
-        g_track = geodesy_align( g_track, g_r, g_t, g_s );
-
-        % export aligned visual odometry %
-        dlmwrite( [ g_export '/path.xyz' ], g_track, ' ' );
-
-        % import segment model %
-        g_model = dlmread( [ g_path '/model.xyz' ] );
-
-        % align model %
-        g_model = geodesy_align( g_model, g_r, g_t, g_s );
-
-        % export aligned model %
+        % export sparse model %
         dlmwrite( [ g_export '/model.xyz' ], g_model, ' ' );
 
-    end
+        % create image directory %
+        mkdir( [ g_export '/image' ] );
 
-    function g_gps = geodesy_segment_gps( g_path, g_source, g_list )
-
-        % initialise memory %
-        g_gps = zeros( length( g_list ), 3 );
-
-        % parsing image link %
+        % parsing image list %
         for g_i = 1 : length( g_list )
 
-            % import gps information %
-            g_raw = geodesy_segment_gps_get( [ g_source '/' g_list(g_i).name '.txt' ] );
+            % import absolute transformation %
+            g_trans = dlmread( [ g_import '/image/' g_list(g_i).name ] );
 
-            % compose wgs84 position %
-            g_gps(g_i,1) = g_raw(1);
-            g_gps(g_i,2) = g_raw(2);
-            g_gps(g_i,3) = g_raw(3) + g_raw(4);
+            % apply transformation %
+            g_trans(1:3,1:3) = g_r' * g_trans(1:3,1:3);
+
+            % apply transformation %
+            g_trans(1:3,4) = g_r' * ( ( g_trans(1:3,4) * g_s ) - g_t );
+
+            % apply transformation %
+            g_trans(1:3,4) = g_trans(1:3,5) * g_s;
+
+            % export corrected transformation %
+            dlmwrite( [ g_export '/image/' g_list(g_i).name ], g_trans, ' ' );
 
         end
 
     end
 
-    function g_gps = geodesy_segment_gps_get( g_file )
+    function g_track = geodesy_segment_track_gps( g_source, g_list )
+
+        % initialise memory %
+        g_track = zeros( length( g_list ), 3 );
+
+        % parsing image list %
+        for g_i = 1 : length( g_list )
+
+            % import track coordinates %
+            g_gps = geodesy_segment_track_gps_read( [ g_source '/' g_list(g_i).name '.txt' ] );
+
+            % compose track position - wgs84-msl %
+            g_track(g_i,1:3) = g_gps(1:3);
+
+            % compose track position - wgs84-hae %
+            g_track(g_i,3) = g_track(g_i,3) + g_gps(4);
+
+        end
+
+        % convert coordinates %
+        g_track = geodesy_segment_track_gps_convert( g_track, 6378137.0, 298.257223563 );
+
+    end
+
+    function g_gps = geodesy_segment_track_gps_read( g_file )
 
         % import image information %
         g_content = textread( g_file, '%s' );
@@ -166,7 +174,7 @@
 
     end
 
-    function g_cart = geodesy_cartesian( g_pos, g_rad, g_flat )
+    function g_cart = geodesy_segment_track_gps_convert( g_pos, g_rad, g_flat )
 
         % square eccentricity %
         g_e = 2 * ( 1.0 / g_flat ) - ( ( 1.0 / g_flat ) * ( 1.0 / g_flat ) );
@@ -184,17 +192,17 @@
 
     end
 
-    function [ g_r, g_t, g_s ] = geodesy_align_detect( g_ref, g_pts )
+    function [ g_r, g_t, g_s ] = geodesy_align( g_ref, g_pts )
 
         % compute scale factor %
-        g_s = geodesy_align_detect_scale( g_ref, g_pts );
+        g_s = geodesy_align_scale( g_ref, g_pts );
 
         % compute alignment tranformation %
-        [ g_r, g_t ] = geodesy_align_detect_rigid( g_ref, g_pts * g_s );
+        [ g_r, g_t ] = geodesy_align_rigid( g_ref, g_pts * g_s );
 
     end
 
-    function g_s = geodesy_align_detect_scale( g_ref, g_pts )
+    function g_s = geodesy_align_scale( g_ref, g_pts )
 
         % compute distance %
         g_ref_dist = norm( g_ref(1,:) - g_ref(end,:) );
@@ -207,7 +215,7 @@
 
     end
 
-    function [ g_r, g_t ] = geodesy_align_detect_rigid( g_ref, g_pts )
+    function [ g_r, g_t ] = geodesy_align_rigid( g_ref, g_pts )
 
         % memory management %
         g_m = zeros( 3, 3 );
@@ -233,20 +241,10 @@
 
     end
 
-    function g_align = geodesy_align( g_pts, g_r, g_t, g_s )
-
-        % apply scale factor %
-        g_pts = g_pts * g_s;
-
-        % apply translation %
-        g_pts(:,1) = g_pts(:,1) - g_t(1);
-        g_pts(:,2) = g_pts(:,2) - g_t(2);
-        g_pts(:,3) = g_pts(:,3) - g_t(3);
+    function g_pts = geodesy_align_apply( g_pts, g_r, g_t, g_s )
 
         % apply transformation %
-        g_align(:,1) = g_pts(:,1) * g_r'(1,1) + g_pts(:,2) * g_r'(1,2) + g_pts(:,3) * g_r'(1,3);
-        g_align(:,2) = g_pts(:,1) * g_r'(2,1) + g_pts(:,2) * g_r'(2,2) + g_pts(:,3) * g_r'(2,3);
-        g_align(:,3) = g_pts(:,1) * g_r'(3,1) + g_pts(:,2) * g_r'(3,2) + g_pts(:,3) * g_r'(3,3);
+        g_pts = ( g_r' * ( g_pts * g_s - g_t' )' )';
 
     end
 
