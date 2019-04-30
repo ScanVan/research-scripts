@@ -66,63 +66,47 @@
             % extract absolute factor %
             m_f = m_transform(1,5);
 
-            % read dense triplet %
-            m_dense = dlmread( [ m_path '/output/10_dense_3_derive/' m_name '.xyz' ] );
-
-            % apply scale factor %
-            m_dense(:,1:3) = m_dense(:,1:3) * m_f;
-
-            % apply aboslute rotation %
-            m_dense(:,1:3) = merge_dense_rotation( m_dense(:,1:3), m_r );
-
-            % apply aboslute tranlsation %
-            m_dense(:,1:3) = merge_dense_position( m_dense(:,1:3), m_t );
-
-            % export aligned dense triplet %
-            merge_dense_append( [ m_path '/output/11_dense_derive/' m_index '.xyz' ], m_dense );
+            % process dense triplet %
+            merge_dense_process( [ m_path '/output/10_dense_3_derive/' m_name '.xyz' ], [ m_path '/output/11_dense_derive/' m_index '.xyz' ], m_r, m_t, m_f );
 
         end
 
     end
 
-    function m_points = merge_dense_rotation( m_points, m_rotation )
+    function merge_dense_process( m_input, m_output, m_r, m_t, m_f )
 
-        % parsing point list %
-        for m_i = 1 : size( m_points, 1 )
+        % check dense portion %
+        if ( dir( m_input ).bytes == 0 )
 
-            % apply rotation %
-            m_points(m_i,:) = ( m_rotation * m_points(m_i,:)' )';
-
-        end
-
-    end
-
-    function m_points = merge_dense_position( m_points, m_position )
-
-        % parsing point list %
-        for m_i = 1 : size( m_points, 1 )
-
-            % apply translation %
-            m_points(m_i,:) = m_points(m_i,:) + m_position';
+            % interrupt merge of dense portion %
+            return;
 
         end
 
-    end
+        % create output stream %
+        m_stream = fopen( m_output, 'a' );
 
-    function merge_dense_append( m_path, m_point )
+        % read dense portion %
+        m_dense = dlmread( m_input );
 
-        % create stream %
-        m_stream = fopen( m_path, 'a' );
+        % apply scale factor %
+        m_dense(:,1:3) = m_dense(:,1:3) * m_f;
 
-        % parsing point list %
-        for m_i = 1 : size( m_point, 1 )
+        % parsing dense portion elements %
+        for m_i = 1 : size( m_dense, 1 )
 
-            % export dense points %
-            fprintf( m_stream, '%f %f %f %i %i %i\n', m_point(m_i,:) );
+            % apply absolute rotation %
+            m_dense(m_i,1:3) = ( m_r  * m_dense(m_i,1:3)' )';
+
+            % apply absolute translation %
+            m_dense(m_i,1:3) = ( m_t' + m_dense(m_i,1:3)  );
+
+            % export element %
+            fprintf( m_stream, '%.14e %.14e %.14e %i %i %i\n', m_dense(m_i,:) );
 
         end
 
-        % delete stream %
+        % delete output stream %
         fclose( m_stream );
 
     end
