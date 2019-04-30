@@ -92,22 +92,11 @@
         % read dense portion %
         m_dense = dlmread( m_input );
 
-        % apply scale factor %
-        m_dense(:,1:3) = m_dense(:,1:3) * m_f;
+        % apply transformation %
+        m_dense(:,1:3) = ( m_r * ( m_dense(:,1:3) * m_f )' + m_t )';
 
-        % parsing dense portion elements %
-        for m_i = 1 : size( m_dense, 1 )
-
-            % apply absolute rotation %
-            m_dense(m_i,1:3) = ( m_r  * m_dense(m_i,1:3)' )';
-
-            % apply absolute translation %
-            m_dense(m_i,1:3) = ( m_t' + m_dense(m_i,1:3)  );
-
-            % export element %
-            fprintf( m_stream, '%.14e %.14e %.14e %i %i %i\n', m_dense(m_i,:) );
-
-        end
+        % export transformed model %
+        fprintf( m_stream, '%.14e %.14e %.14e %i %i %i\n', m_dense' );
 
         % delete output stream %
         fclose( m_stream );
