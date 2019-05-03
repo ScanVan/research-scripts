@@ -78,6 +78,14 @@
 
     function merge_dense_process( m_input, m_output, m_r, m_t, m_f )
 
+        % fail-safe on missing triplet %
+        if ( exist( m_input, 'file' ) != 2 )
+
+            % interrupt merge of dense portion %
+            return;
+
+        end
+
         % check dense portion %
         if ( dir( m_input ).bytes == 0 )
 
