@@ -28,6 +28,9 @@
         % initialise array %
         s_select = zeros( size( s_list, 1 ), 1 );
 
+        % creating output directory %
+        mkdir( [ s_path '/output/2_1_selected_nh' ] );
+
         % parsing listing %
         for s_i = 2 : size( s_list, 1 )
 
@@ -51,6 +54,9 @@
 
                 % set image as active in the dataset (not part of still area) %
                 s_select(s_i) = 1;
+
+                % create a link for the selected image %
+                fclose( fopen( [ s_path '/output/2_1_selected_nh/' s_list(s_i-1).name '_' s_list(s_i).name ], 'w' ) );
 
             end
 
