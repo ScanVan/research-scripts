@@ -4,7 +4,7 @@ The ScanVan project is a share initiative between the EPFL and the HES-SO Valais
 
 ## This Repository
 
-This repository contains research script used for communication between the theoretical and operational aspects.
+This repository contains the research codes of the ScanVan project. These codes are used during research phases and as a reference for high efficiency codes implementation. The research codes covers all fields addressed during the project from geometry estimation to dense representation computation and geographical alignment.
 
 ## Dependencies
 
