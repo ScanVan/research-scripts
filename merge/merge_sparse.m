@@ -20,7 +20,7 @@
     function merge_sparse( m_path )
 
         % create image listing %
-        m_list = dir( [ m_path '/output/1_features/*' ] );
+        m_list = dir( [ m_path '/output/1_features_moving/*' ] );
 
         % create directory %
         mkdir( [ m_path '/output/8_models_derive/' ] );
@@ -30,6 +30,8 @@
 
         % initialise index %
         m_parse = 1;
+
+        _m_analyse = [];
 
         % merging process %
         while ( m_index < ( length( m_list ) - 2 ) )
@@ -44,7 +46,7 @@
             mkdir( [ m_segment '/image' ] );
 
             % merge segment %
-            [ m_index, m_vom, m_vop ] = merge_sparse_segment( m_path, m_list, m_index, m_segment );
+            [ m_index, m_vom, m_vop, _m_analyse ] = merge_sparse_segment( m_path, m_list, m_index, m_segment, _m_analyse );
 
             % export merged model %
             merge_sparse_export( m_segment, m_vom, m_vop );
@@ -54,9 +56,12 @@
 
         end
 
+        figure;
+        plot( _m_analyse );
+
     end
 
-    function [ m_index, m_vom, m_vop ] = merge_sparse_segment( m_path, m_list, m_index, m_export )
+    function [ m_index, m_vom, m_vop, _m_analyse ] = merge_sparse_segment( m_path, m_list, m_index, m_export, _m_analyse )
 
         % push initial index %
         m_push = m_index;
@@ -89,6 +94,8 @@
                 fprintf( 2, 'Processing : %s\n', m_name );
 
             else
+
+                fprintf( 2, '%s\n', m_name );
 
                 % abort incremental merge %
                 error( 'triplet not found' );
@@ -139,8 +146,15 @@
                 % compute position %
                 m_check = m_pos - m_r12' * m_t12;
 
+                % compute consitency %
+                m_consist = norm( m_check - m_predict ) / norm( m_t23 );
+
+                % RESEARCH % analyse error %
+                _m_analyse(end+1) = m_consist;
+                % RESEARCH %
+
                 % apply consistency check %
-                if ( ( norm( m_check - m_predict ) / norm( m_t23 ) ) > 0.1 )
+                if ( m_consist > 0.4 )
 
                     % abort incremental merge %
                     return;
