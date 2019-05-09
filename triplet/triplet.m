@@ -110,31 +110,15 @@
 
     function t_rotate = triplet_rotate( t_p, t_r )
 
-        % initialise memory %
-        t_rotate = zeros( size( t_p ) );
-
-        % parsing points %
-        for t_i = 1 : size( t_p, 1 )
-
-            % apply rotation %
-            t_rotate( t_i, : ) = ( t_r * t_p( t_i, : )' )';
-
-        end
+        % apply rotation %
+        t_rotate = ( t_r * t_p' )';
 
     end
 
     function t_corr = triplet_correlation( t_1_f, t_1_c, t_2_f, t_2_c )
 
-        % initialise memory %
-        t_corr = zeros( 3, 3 );
-
-        % parsing features %
-        for t_i = 1 : size( t_1_f, 1 )
-
-            % accumulate correlation matrix %
-            t_corr = t_corr + ( t_1_f - t_1_c )' * ( t_2_f - t_2_c );
-
-        end
+        % compute correlation matrix %
+        t_corr = ( t_1_f - t_1_c )' * ( t_2_f - t_2_c );
 
     end
 
@@ -249,6 +233,11 @@
     end
 
     function [ t_1_r, t_2_r, t_3_r, t_1_e, t_2_e, t_3_e ] = triplet_radius( t_1_p, t_1_d, t_2_p, t_2_d, t_3_p, t_3_d )
+
+        % initialise memory %
+        t_1_r = zeros( size( t_1_d, 1 ), 1 );
+        t_2_r = zeros( size( t_2_d, 1 ), 1 );
+        t_3_r = zeros( size( t_3_d, 1 ), 1 );
 
         % initialise memory %
         t_1_e = zeros( size( t_1_d, 1 ), 1 );
