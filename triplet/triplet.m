@@ -74,7 +74,8 @@
                 [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_consistency( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, 5.0, t_1_e, t_2_e, t_3_e );
 
                 % stability filtering %
-                [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, 3.0 );
+                % [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, 3.0 );
+                [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter_rsh( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, norm( t_t12 ), 1, 50 );
 
                 % compute triplet characteristic scale %
                 t_norm = norm( t_t12 ) + norm( t_t23 );
@@ -302,6 +303,42 @@
                 t_3_d_( t_index, : ) = t_3_d( t_i, : );
 
             end
+            end
+            end
+
+        end
+
+    end
+
+    function [ t_1_d_, t_1_r_, t_2_d_, t_2_r_, t_3_d_, t_3_r_ ] = triplet_filter_rsh( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_value, t_min, t_max )
+
+        % range definition %
+        t_min = t_min * t_value;
+        t_max = t_max * t_value;
+
+        % indexation parameter %
+        t_index = 0;
+
+        % parsing features %
+        for t_i = 1 : size( t_1_d, 1 )
+
+            % filtering condition %
+            if ( t_1_r( t_i ) >= t_min )
+            if ( t_1_r( t_i ) <= t_max )
+
+                % update index %
+                t_index = t_index + 1;
+
+                % select feature %
+                t_1_r_( t_index ) = t_1_r( t_i );
+                t_2_r_( t_index ) = t_2_r( t_i );
+                t_3_r_( t_index ) = t_3_r( t_i );
+
+                % select feature %
+                t_1_d_( t_index, : ) = t_1_d( t_i, : );
+                t_2_d_( t_index, : ) = t_2_d( t_i, : );
+                t_3_d_( t_index, : ) = t_3_d( t_i, : );
+
             end
             end
 
