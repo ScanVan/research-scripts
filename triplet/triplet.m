@@ -99,29 +99,6 @@
 
     end
 
-    function t_point = triplet_cartesian( t_match, t_width, t_height )
-
-        % coordinates re-normalisation %
-        t_match(:,1) = ( ( t_match(:,1) - 1 ) / t_width ) * 2.0 * pi;
-
-        % coordinates re-normalisation %
-        t_match(:,2) = ( ( t_match(:,2) / t_height ) - 0.5 ) * pi;
-
-        % initialise memory %
-        t_point = zeros( size( t_match, 1 ), 3 );
-
-        % parsing matches %
-        for t_i = 1 : size( t_match, 1 )
-
-            % coordinates conversion %
-            t_point( t_i, 1 ) = cos( t_match( t_i, 2 ) ) * cos( t_match( t_i, 1 ) );
-            t_point( t_i, 2 ) = cos( t_match( t_i, 2 ) ) * sin( t_match( t_i, 1 ) );
-            t_point( t_i, 3 ) = sin( t_match( t_i, 2 ) );
-
-        end
-
-    end
-
     function t_f = triplet_feature( t_d, t_r )
 
         % compute feature position %

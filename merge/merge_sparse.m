@@ -31,7 +31,9 @@
         % initialise index %
         m_parse = 1;
 
+        % RESEARCH % error display
         _m_analyse = [];
+        % RESEARCH %
 
         % merging process %
         while ( m_index < ( length( m_list ) - 2 ) )
@@ -56,8 +58,9 @@
 
         end
 
-        figure;
-        plot( _m_analyse );
+        % RESEARCH % error display
+        figure; plot( _m_analyse );
+        % RESEARCH %
 
     end
 
