@@ -44,7 +44,7 @@
             mkdir( [ m_segment '/image' ] );
 
             % merge segment %
-            [ m_index, m_vom, m_vop, _m_analyse ] = merge_sparse_segment( m_path, m_list, m_index, m_segment, _m_analyse );
+            [ m_index, m_vom, m_vop ] = merge_sparse_segment( m_path, m_list, m_index, m_segment );
 
             % export merged model %
             merge_sparse_export( m_segment, m_vom, m_vop );
@@ -56,7 +56,7 @@
 
     end
 
-    function [ m_index, m_vom, m_vop, _m_analyse ] = merge_sparse_segment( m_path, m_list, m_index, m_export, _m_analyse )
+    function [ m_index, m_vom, m_vop ] = merge_sparse_segment( m_path, m_list, m_index, m_export )
 
         % push initial index %
         m_push = m_index;
@@ -90,10 +90,8 @@
 
             else
 
-                fprintf( 2, '%s\n', m_name );
-
                 % abort incremental merge %
-                error( 'triplet not found' );
+                error( [ 'triplet not found : ' m_name ] );
 
             end
 
