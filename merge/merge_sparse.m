@@ -31,10 +31,6 @@
         % initialise index %
         m_parse = 1;
 
-        % RESEARCH % error display
-        _m_analyse = [];
-        % RESEARCH %
-
         % merging process %
         while ( m_index < ( length( m_list ) - 2 ) )
 
@@ -57,10 +53,6 @@
             m_parse = m_parse + 1;
 
         end
-
-        % RESEARCH % error display
-        figure; plot( _m_analyse );
-        % RESEARCH %
 
     end
 
@@ -106,7 +98,7 @@
             end
 
             % read estimated sparse  %
-            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name ] );
+            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name '.xyz' ] );
 
             % read estimated pose %
             m_data = dlmread( [ m_path '/output/5_pose_3/' m_name ] );
@@ -151,10 +143,6 @@
 
                 % compute consitency %
                 m_consist = norm( m_check - m_predict ) / norm( m_t23 );
-
-                % RESEARCH % analyse error %
-                _m_analyse(end+1) = m_consist;
-                % RESEARCH %
 
                 % apply consistency check %
                 if ( m_consist > 0.4 )
