@@ -28,6 +28,9 @@
         % initialise array %
         s_select = zeros( size( s_list, 1 ), 1 );
 
+        % criterion accumulator %
+        s_accum = 0.0;
+
         % creating output directory %
         mkdir( [ s_path '/output/2_1_selected_nh' ] );
 
@@ -49,14 +52,20 @@
             % compute criterion %
             s_crit(s_i) = mean( s_dist(:) ) * std( s_dist(:) );
 
+            % accumulate criterion %
+            s_accum = s_accum + s_crit(s_i);
+
             % apply cirterion %
-            if ( s_crit(s_i) > s_threshold )
+            if ( s_accum > s_threshold )
 
                 % set image as active in the dataset (not part of still area) %
                 s_select(s_i) = 1;
 
                 % create a link for the selected image %
                 fclose( fopen( [ s_path '/output/2_1_selected_nh/' s_list(s_i-1).name '_' s_list(s_i).name ], 'w' ) );
+
+                % reset accumulator %
+                s_accum = 0.0;
 
             end
 
