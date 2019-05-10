@@ -74,8 +74,7 @@
                 [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_consistency( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, 5.0, t_1_e, t_2_e, t_3_e );
 
                 % stability filtering %
-                % [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, 3.0 );
-                [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter_rsh( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, norm( t_t12 ), 1, 50 );
+                [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, norm( t_t12 ), 1, 50 );
 
                 % compute triplet characteristic scale %
                 t_norm = norm( t_t12 ) + norm( t_t23 );
@@ -310,7 +309,7 @@
 
     end
 
-    function [ t_1_d_, t_1_r_, t_2_d_, t_2_r_, t_3_d_, t_3_r_ ] = triplet_filter_rsh( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_value, t_min, t_max )
+    function [ t_1_d_, t_1_r_, t_2_d_, t_2_r_, t_3_d_, t_3_r_ ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_value, t_min, t_max )
 
         % range definition %
         t_min = t_min * t_value;
@@ -339,56 +338,6 @@
                 t_2_d_( t_index, : ) = t_2_d( t_i, : );
                 t_3_d_( t_index, : ) = t_3_d( t_i, : );
 
-            end
-            end
-
-        end
-
-    end
-
-    function [ t_1_d_, t_1_r_, t_2_d_, t_2_r_, t_3_d_, t_3_r_ ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_tol )
-
-        % statistics %
-        t_1_m = mean( t_1_r );
-        t_2_m = mean( t_2_r );
-        t_3_m = mean( t_3_r );
-
-        % statistics %
-        t_1_s = std( t_1_r );
-        t_2_s = std( t_2_r );
-        t_3_s = std( t_3_r );
-
-        % indexation parameter %
-        t_index = 0;
-
-        % filtering process %
-        for t_i = 1 : size( t_1_d, 1 )
-
-            % statisical filtering condition %
-            if ( abs( t_1_r(t_i) - t_1_m ) <= t_1_s * t_tol )
-            if ( abs( t_2_r(t_i) - t_2_m ) <= t_2_s * t_tol )
-            if ( abs( t_3_r(t_i) - t_3_m ) <= t_3_s * t_tol )
-
-                % radii negativity filtering condition %
-                if ( t_1_r( t_i ) > 0 )
-
-                    % update index %
-                    t_index = t_index + 1;
-
-                    % select feature %
-                    t_1_r_( t_index ) = t_1_r( t_i );
-                    t_2_r_( t_index ) = t_2_r( t_i );
-                    t_3_r_( t_index ) = t_3_r( t_i );
-
-                    % select feature %
-                    t_1_d_( t_index, : ) = t_1_d( t_i, : );
-                    t_2_d_( t_index, : ) = t_2_d( t_i, : );
-                    t_3_d_( t_index, : ) = t_3_d( t_i, : );
-
-                end
-
-
-            end
             end
             end
 
