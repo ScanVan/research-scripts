@@ -19,6 +19,9 @@
 
     function [ t_r12, t_r23, t_t12, t_t23, t_sparse ] = triplet( t_input, t_width, t_height, t_path )
 
+        % display information %
+        fprintf( 2, 'Pose estimation with %i common matches\n', size( t_input, 1 ) );
+
         % extract features directions %
         t_1_d = t_input(:,1:3);
         t_2_d = t_input(:,4:6);
@@ -70,11 +73,15 @@
                 % push error %
                 t_p_err = t_c_err;
 
+                % compute triplet amplitude %
+                t_amp = triplet_amplitude( t_1_p_, t_2_p_, t_3_p_ );
+
                 % matches filtering %
                 [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_consistency( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, 5.0, t_1_e, t_2_e, t_3_e );
 
                 % stability filtering %
-                [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, norm( t_t12 ), 1, 50 );
+                [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_amp, 1, 50 );
+
 
                 % compute triplet characteristic scale %
                 t_norm = norm( t_t12 ) + norm( t_t23 );
@@ -268,6 +275,13 @@
 
         % compute error %
         t_error = max( [ max( t_1_e ), max( t_2_e ), max( t_3_e ) ] ) / min( norm( t_t12 ), norm( t_t23 ) );
+
+    end
+
+    function t_amplitude = triplet_amplitude( t_1_p, t_2_p, t_3_p )
+
+        % compute and return amplitude %
+        t_amplitude = max( [ norm( t_1_p - t_2_p ), norm( t_1_p - t_3_p ), norm( t_2_p - t_3_p ) ] );
 
     end
 
