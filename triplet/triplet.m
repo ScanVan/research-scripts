@@ -82,7 +82,6 @@
                 % stability filtering %
                 [ t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r ] = triplet_filter( t_1_d, t_1_r, t_2_d, t_2_r, t_3_d, t_3_r, t_amp, 1, 50 );
 
-
                 % compute triplet characteristic scale %
                 t_norm = norm( t_t12 ) + norm( t_t23 );
 
