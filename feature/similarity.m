@@ -81,15 +81,12 @@
         % initialise value %
         s_measure = 0.0;
 
-        % create random selection %
-        s_rand = randperm( size( s_rfeat, 1 ) )(1:s_prec);
-
         % parsing reference features %
         for s_i = 1 : s_prec
 
             % compute distances component %
-            s_distx = s_cfeat(:,1) - s_rfeat(s_rand(s_i),1);
-            s_disty = s_cfeat(:,2) - s_rfeat(s_rand(s_i),2);
+            s_distx = s_cfeat(:,1) - s_rfeat(s_i,1);
+            s_disty = s_cfeat(:,2) - s_rfeat(s_i,2);
 
             % compute distance %
             s_dist = min( sqrt( s_distx .* s_distx + s_disty .* s_disty ) );
