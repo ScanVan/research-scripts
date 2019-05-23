@@ -44,17 +44,30 @@
                 s_cfeat = s_feature{s_j};
 
                 % similarity measure %
-                s_matrix( s_j, s_i ) = similarity_distance( s_rfeat, s_cfeat, 64 );
+                s_matrix( s_j, s_i ) = similarity_distance( s_rfeat, s_cfeat, 1024 );
 
 
             end
 
         end
 
-        %%% research %%% display matrix
-        %figure;
-        %imagesc( [1:s_size], [1:s_size], s_matrix' );
-        %%% research %%%
+        % create figure %
+        figure;
+
+        % figure configuration %
+        hold on;
+        gird on;
+        box  on;
+
+        % display experimental similarity matrix %
+        imagesc( [1:s_size], [1:s_size], s_matrix' );
+
+        % axis labels %
+        xlabel( 'image index' );
+        ylabel( 'image index' );
+
+        % axis configuration %
+        axis( 'square' );
 
     end
 
