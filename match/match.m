@@ -60,7 +60,7 @@
                     m_link = match_detect( m_mindex, m_i, m_j, m_link );
 
                     % export match %
-                    match_export( m_path, strsplit( m_list(m_i).name, '_' ){1}, m_feature, m_link, m_i );
+                    %match_export( m_path, strsplit( m_list(m_i).name, '_' ){1}, m_feature, m_link, m_i );
 
                 end
 
