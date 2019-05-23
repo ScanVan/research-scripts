@@ -38,7 +38,7 @@
             for s_j = s_i + 1 : s_size
 
                 % similarity measure %
-                s_matrix( s_j, s_i ) = similarity_distance( s_feature{s_i}, s_feature{s_j}, s_sample );
+                s_matrix( s_j, s_i ) = log( 1 + similarity_distance( s_feature{s_i}, s_feature{s_j}, s_sample ) );
 
             end
 
