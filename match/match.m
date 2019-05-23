@@ -22,7 +22,7 @@
         m_list = dir( [ m_path '/output/2_matches_moving_index/*' ] );
 
         % extract listing size %
-        m_size = 16; % size( m_list, 1 );
+        m_size = size( m_list, 1 );
 
         % parsing listing %
         for m_i = 1 : m_size
@@ -33,16 +33,16 @@
             % import matches index %
             m_mindex{m_i} = dlmread( [ m_path '/output/2_matches_moving_index/' m_list(m_i).name ] );
 
-            % retrieve image base %
-            m_parts = strsplit( m_list(m_i).name, '_' )
-
             % import subsequent features %
-            m_feature{m_i} = dlmread( [ m_path '/output/1_features/' m_parts{1} ] );
+            m_feature{m_i} = dlmread( [ m_path '/output/1_features/' strsplit( m_list(m_i).name, '_' ){1} ] );
 
         end
 
         % parsing listing %
         for m_i = 1 : m_size
+
+            % display message %
+            fprintf( 2, 'Process %s ...\n', strsplit( m_list(m_i).name, '_' ){1} );
 
             % parsing index %
             for m_j = 1 : size( m_mindex{m_i}, 1 )
@@ -86,6 +86,7 @@
         % detect index %
         m_jdx = find( m_mindex{m_base+1}(:,1) == m_idx, 1, 'first' );
 
+        % check search results %
         if ( length( m_jdx ) > 0 )
 
             % push feature on link array %
