@@ -17,7 +17,7 @@
     %  You should have received a copy of the GNU General Public License
     %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    function similarity( s_path )
+    function similarity( s_path, s_sample )
 
         % read features %
         [ s_feature, s_list ] = similarity_read( s_path );
@@ -31,21 +31,14 @@
         % parsing listing %
         for s_i = 1 : s_size
 
-            % import features %
-            s_rfeat = s_feature{s_i};
-
             % display information %
             fprintf( 2, 'Reference : %s\n', s_list(s_i).name );
 
             % parsing listing %
             for s_j = s_i + 1 : s_size
 
-                % import features %
-                s_cfeat = s_feature{s_j};
-
                 % similarity measure %
-                s_matrix( s_j, s_i ) = similarity_distance( s_rfeat, s_cfeat, 1024 );
-
+                s_matrix( s_j, s_i ) = similarity_distance( s_feature{s_i}, s_feature{s_j}, s_sample );
 
             end
 
@@ -56,7 +49,7 @@
 
         % figure configuration %
         hold on;
-        gird on;
+        grid on;
         box  on;
 
         % display experimental similarity matrix %
@@ -66,8 +59,11 @@
         xlabel( 'image index' );
         ylabel( 'image index' );
 
+        % reverse y-axis %
+        set( gca, 'ydir', 'reverse' );
+
         % axis configuration %
-        axis( 'square' );
+        axis( [ 1.5, (s_size - 0.5), 1.5, (s_size - 0.5) ], 'square' );
 
     end
 
@@ -75,6 +71,8 @@
 
         % create listing %
         s_list = dir( [ s_path '/output/1_features/*' ] );
+
+        s_list = s_list(1:700);
 
         % parsing listing %
         for s_i = 1 : size( s_list, 1 )
@@ -98,14 +96,10 @@
         for s_i = 1 : s_prec
 
             % compute distances component %
-            s_distx = s_cfeat(:,1) - s_rfeat(s_i,1);
-            s_disty = s_cfeat(:,2) - s_rfeat(s_i,2);
+            s_dist = s_cfeat(:,:) - s_rfeat(s_i,:);
 
-            % compute distance %
-            s_dist = min( sqrt( s_distx .* s_distx + s_disty .* s_disty ) );
-
-            % detect maximal distance %
-            if ( s_dist > s_measure ); s_measure = s_dist; end
+            % compute distance and search extremum %
+            s_measure = max( s_measure, min( sqrt( s_dist(:,1) .* s_dist(:,1) + s_dist(:,2) .* s_dist(:,2) ) ) );
 
         end
 
