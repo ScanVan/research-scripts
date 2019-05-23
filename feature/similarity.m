@@ -65,14 +65,15 @@
         % axis configuration %
         axis( [ 1.5, (s_size - 0.5), 1.5, (s_size - 0.5) ], 'square' );
 
+        % export matrix %
+        imwrite( uint8( ( s_matrix' - min( s_matrix(:) ) ) / ( max( s_matrix(:) ) - min( s_matrix(:) ) ) * 255 ), jet( 256 ), 'similarity.png' );
+
     end
 
     function [ s_feature, s_list ] = similarity_read( s_path )
 
         % create listing %
         s_list = dir( [ s_path '/output/1_features/*' ] );
-
-        s_list = s_list(1:700);
 
         % parsing listing %
         for s_i = 1 : size( s_list, 1 )
@@ -99,7 +100,7 @@
             s_dist = s_cfeat(:,:) - s_rfeat(s_i,:);
 
             % compute distance and search extremum %
-            s_measure = max( s_measure, min( sqrt( s_dist(:,1) .* s_dist(:,1) + s_dist(:,2) .* s_dist(:,2) ) ) );
+            s_measure = s_measure + min( sqrt( s_dist(:,1) .* s_dist(:,1) + s_dist(:,2) .* s_dist(:,2) ) );
 
         end
 
