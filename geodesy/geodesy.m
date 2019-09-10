@@ -24,7 +24,7 @@
         g_source = [ g_path '/../../../' strtrim( fileread( [ g_path '/input/input_dataset.txt' ] ) ) ];
 
         % create segment listing %
-        g_list = dir( [ g_path '/output/8_models_derive/*' ] );
+        g_list = dir( [ g_path '/output/8_models_derive' ] );
 
         % create directory %
         mkdir( [ g_path '/output/9_geodesy_derive' ] );

@@ -26,7 +26,7 @@
         m_list = m_list( ~ ismember( {m_list.name}, {'.', '..'} ) );
 
         % create directory %
-        mkdir( [ m_path '/output/11_dense_derive' ] );
+        mkdir( [ m_path '/output/11_dense_5_derive' ] );
 
         % parsing listing %
         for m_parse = 1 : size( m_list, 1 )
@@ -44,6 +44,39 @@
     end
 
     function merge_dense_segment( m_path, m_index )
+
+        % create image listing %
+        m_list = dir( [ m_path '/output/9_geodesy_derive/' m_index '/image/*' ] );
+
+        % parsing image listing %
+        for m_parse = 1001 : 1200 % size( m_list, 1 ) - 4
+
+            % compose triplet name %
+            m_name = [ m_list(m_parse).name '_' m_list(m_parse+1).name '_' m_list(m_parse+2).name '_' m_list(m_parse+3).name '_' m_list(m_parse+4).name ];
+
+            % display information %
+            fprintf( 2, 'processing : %s ...\n', m_name );
+
+            % read triplet absolute transformation %
+            m_transform = dlmread( [ m_path '/output/9_geodesy_derive/' m_index '/image/' m_list(m_parse).name ] );
+
+            % extract absolute rotation %
+            m_r = m_transform(1:3,1:3);
+
+            % extract absolute position %
+            m_t = m_transform(1:3,4);
+
+            % extract absolute factor %
+            m_f = m_transform(1,5);
+
+            % process dense triplet %
+            merge_dense_process( [ m_path '/output/10_dense_5_derive/' m_name '.xyz' ], [ m_path '/output/11_dense_5_derive/' m_index '.xyz' ], m_r, m_t, m_f );
+
+        end
+
+    end
+
+    function merge_dense_segment_( m_path, m_index )
 
         % create image listing %
         m_list = dir( [ m_path '/output/9_geodesy_derive/' m_index '/image/*' ] );

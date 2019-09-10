@@ -32,7 +32,7 @@
         s_accum = 0.0;
 
         % creating output directory %
-        mkdir( [ s_path '/output/2_1_selected_nh' ] );
+        mkdir( [ s_path '/output/2_matches_moving' ] );
 
         % parsing listing %
         for s_i = 2 : size( s_list, 1 )
@@ -62,7 +62,7 @@
                 s_select(s_i) = 1;
 
                 % create a link for the selected image %
-                fclose( fopen( [ s_path '/output/2_1_selected_nh/' s_list(s_i-1).name '_' s_list(s_i).name ], 'w' ) );
+                fclose( fopen( [ s_path '/output/2_matches_moving/' s_list(s_i-1).name '_' s_list(s_i).name ], 'w' ) );
 
                 % reset accumulator %
                 s_accum = 0.0;
@@ -72,7 +72,7 @@
         end
 
         % display criterion %
-        still_show( s_crit, s_select, s_threshold, 'export.png' );
+        % still_show( s_crit, s_select, s_threshold, 'export.png' );
 
     end
 

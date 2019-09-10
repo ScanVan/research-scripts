@@ -21,6 +21,7 @@
 
         % create image listing %
         m_list = dir( [ m_path '/output/1_features_moving/*' ] );
+        %m_list = dir( [ m_path '/output/1_features/*' ] );
 
         % create directory %
         mkdir( [ m_path '/output/8_models_derive/' ] );
@@ -96,7 +97,8 @@
             end
 
             % read estimated sparse  %
-            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name '.xyz' ] );
+            %m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name '.xyz' ] );
+            m_model = dlmread( [ m_path '/output/6_sparse_3/' m_name ] );
 
             % read estimated pose %
             m_data = dlmread( [ m_path '/output/5_pose_3/' m_name ] );
